@@ -1,7 +1,7 @@
 # Проект «Киноман»
 
 * Студент: [Наталья](https://up.htmlacademy.ru/ecmascript/15/user/1718319).
-* Наставник: `Неизвестно`.
+* Наставник: [Михаил Полюбай](https://htmlacademy.ru/profile/id1342307).
 
 ---
 
