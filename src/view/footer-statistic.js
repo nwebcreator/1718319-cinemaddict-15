@@ -1,17 +1,13 @@
 import { createElement } from '../utils.js';
 
-export default class FilmsListExtra {
-  constructor(title) {
+export default class FooterStatistic {
+  constructor(movies) {
     this._element = null;
-    this._title = title;
+    this._movies = movies;
   }
 
   getTemplate() {
-    return `<section class="films-list films-list--extra">
-    <h2 class="films-list__title">${this._title}</h2>
-    <div class="films-list__container">
-    </div>
-  </section>`;
+    return `<p>${this._movies.length} movies inside</p>`;
   }
 
   getElement() {
