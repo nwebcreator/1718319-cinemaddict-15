@@ -59,4 +59,11 @@ const getFullDate = (date) => dayjs(date).format('D MMM YYYY');
 
 const getCommentsDate = (date) => dayjs(date).format('YYYY/MM/DD hh:mm');
 
-export { getRandomInteger, getRandomFloat, getRandomElementFromArray, getRandomUniqueElementsFromArray, generateDate, range, getYear, getFormatedDuration, getFullDate, getCommentsDate };
+const createElement = (template) => {
+  const newElement = document.createElement('div'); // 1
+  newElement.innerHTML = template; // 2
+
+  return newElement.firstChild; // 3
+};
+
+export { getRandomInteger, getRandomFloat, getRandomElementFromArray, getRandomUniqueElementsFromArray, generateDate, range, getYear, getFormatedDuration, getFullDate, getCommentsDate, createElement };
