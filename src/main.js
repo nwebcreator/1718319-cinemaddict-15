@@ -32,10 +32,11 @@ if (movies.length === 0) {
   const filmsListElement = mainElement.querySelector('.films-list');
   const filmsListContainerElement = filmsListElement.querySelector('.films-list__container');
 
-  const openPopup = (movie, evt) => {
+  let popupOpened = false;
+  const openPopup = (movie) => (evt) => {
     evt.preventDefault();
 
-    if (document.body.classList.contains('hide-overflow')) {
+    if (popupOpened) {
       return;
     }
 
@@ -45,6 +46,7 @@ if (movies.length === 0) {
     const closePopup = () => {
       document.body.removeChild(popup.getElement());
       document.body.classList.remove('hide-overflow');
+      popupOpened = false;
     };
 
     const onEscKeyDown = (evt2) => {
@@ -57,17 +59,24 @@ if (movies.length === 0) {
 
     document.body.appendChild(popup.getElement());
     document.body.classList.add('hide-overflow');
-    popup.getElement().querySelector('.film-details__close-btn').addEventListener('click', () => closePopup());
+    popup.getElement().querySelector('.film-details__close-btn').addEventListener('click', closePopup);
     document.addEventListener('keydown', onEscKeyDown);
+    popupOpened = true;
   };
 
   const setCardViewListeners = (cardView, movie) => {
-    cardView.getElement().querySelectorAll('.film-card__poster, .film-card__title, .film-card__comments').forEach((it) => it.addEventListener('click', openPopup.bind(null, movie)));
+    cardView.getElement().querySelectorAll('.film-card__poster, .film-card__title, .film-card__comments').forEach((it) => it.addEventListener('click', openPopup(movie)));
   };
+
+  for (let i = 0; i < Math.min(movies.length, CARDS_COUNT_PER_STEP); i++) {
+    const cardView = new CardView(movies[i]);
+    render(filmsListContainerElement, cardView.getElement(), RenderPosition.BEFOREEND);
+    setCardViewListeners(cardView, movies[i]);
+  }
 
   const showMoreButtonComponent = new ShowMoreButtonView();
   if (movies.length > CARDS_COUNT_PER_STEP) {
-    let renderedMovieCount = 0;
+    let renderedMovieCount = CARDS_COUNT_PER_STEP;
 
     render(filmsListElement, showMoreButtonComponent.getElement(), RenderPosition.BEFOREEND);
 
@@ -89,8 +98,6 @@ if (movies.length === 0) {
       }
     });
   }
-
-  showMoreButtonComponent.getElement().click();
 
   const filmsElement = mainElement.querySelector('.films');
   const topRatedFilmsExtraView = new FilmsListExtraView('Top rated');
