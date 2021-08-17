@@ -1,9 +1,12 @@
-import { getYear, getFormatedDuration, createElement } from '../utils.js';
+import { getYear, getFormatedDuration } from '../utils.js';
+import AbstractView from './abstract.js';
 
-export default class Card {
+export default class Card extends AbstractView {
   constructor(movie) {
-    this._element = null;
+    super();
     this._movie = movie;
+
+    this._openPopupHandler = this._openPopupHandler.bind(this);
   }
 
   getTemplate() {
@@ -26,15 +29,13 @@ export default class Card {
   </article>`;
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
+  _openPopupHandler(evt) {
+    evt.preventDefault();
+    this._callback.openPopupClick();
   }
 
-  removeElement() {
-    this._element = null;
+  setOpenPopupHandler(callback) {
+    this._callback.openPopupClick = callback;
+    this.getElement().querySelectorAll('.film-card__poster, .film-card__title, .film-card__comments').forEach((it) => it.addEventListener('click', this._openPopupHandler));
   }
 }

@@ -1,4 +1,4 @@
-import { createElement } from '../utils.js';
+import AbstractView from './abstract.js';
 
 const NOVICE_MOVIE_COUNT = 1;
 const FAN_MOVIE_COUNT = 11;
@@ -17,9 +17,9 @@ const getProfileRating = (count) => {
   return '';
 };
 
-export default class Profile {
+export default class Profile extends AbstractView {
   constructor(movies) {
-    this._element = null;
+    super();
     this._movies = movies;
   }
 
@@ -28,17 +28,5 @@ export default class Profile {
     <p class="profile__rating">${getProfileRating(this._movies.filter((it) => it.userDetails.alreadyWatched).length)}</p>
     <img class="profile__avatar" src="images/bitmap@2x.png" alt="Avatar" width="35" height="35">
   </section>`;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }

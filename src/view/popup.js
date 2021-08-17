@@ -1,10 +1,14 @@
-import { getFullDate, getFormatedDuration, getCommentsDate, createElement } from '../utils.js';
+import { getFullDate, getFormatedDuration, getCommentsDate } from '../utils.js';
+import AbstractView from './abstract.js';
 
-export default class Popup {
+
+export default class Popup extends AbstractView {
   constructor(movie, comments) {
-    this._element = null;
+    super();
     this._movie = movie;
     this._comments = comments;
+
+    this._closeClickHandler = this._closeClickHandler.bind(this);
   }
 
   getTemplate() {
@@ -134,15 +138,13 @@ export default class Popup {
   </section>`;
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
+  _closeClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.closeClick();
   }
 
-  removeElement() {
-    this._element = null;
+  setCloseClickHandler(callback) {
+    this._callback.closeClick = callback;
+    this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closeClickHandler);
   }
 }
