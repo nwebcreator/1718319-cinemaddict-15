@@ -33,8 +33,7 @@ if (movies.length === 0) {
   const filmsListContainerElement = filmsListElement.querySelector('.films-list__container');
 
   let popupOpened = false;
-  const openPopup = (movie) => (evt) => {
-    evt.preventDefault();
+  const openPopup = (movie) => () => {
 
     if (popupOpened) {
       return;
@@ -59,13 +58,14 @@ if (movies.length === 0) {
 
     document.body.appendChild(popup.getElement());
     document.body.classList.add('hide-overflow');
-    popup.getElement().querySelector('.film-details__close-btn').addEventListener('click', closePopup);
+
+    popup.setCloseClickHandler(closePopup);
     document.addEventListener('keydown', onEscKeyDown);
     popupOpened = true;
   };
 
   const setCardViewListeners = (cardView, movie) => {
-    cardView.getElement().querySelectorAll('.film-card__poster, .film-card__title, .film-card__comments').forEach((it) => it.addEventListener('click', openPopup(movie)));
+    cardView.setOpenPopupHandler(openPopup(movie));
   };
 
   for (let i = 0; i < Math.min(movies.length, CARDS_COUNT_PER_STEP); i++) {
@@ -80,8 +80,7 @@ if (movies.length === 0) {
 
     render(filmsListElement, showMoreButtonComponent.getElement(), RenderPosition.BEFOREEND);
 
-    showMoreButtonComponent.getElement().addEventListener('click', (evt) => {
-      evt.preventDefault();
+    showMoreButtonComponent.setClickHandler(() => {
       movies
         .slice(renderedMovieCount, renderedMovieCount + CARDS_COUNT_PER_STEP)
         .forEach((movie) => {
