@@ -1,4 +1,4 @@
-import { getYear, getFormatedDuration } from '../utils.js';
+import { getYear, getFormatedDuration } from '../utils/common.js';
 import AbstractView from './abstract.js';
 
 export default class Card extends AbstractView {
@@ -7,6 +7,9 @@ export default class Card extends AbstractView {
     this._movie = movie;
 
     this._openPopupHandler = this._openPopupHandler.bind(this);
+    this._addToWatchlistHandler = this._addToWatchlistHandler.bind(this);
+    this._markAsWatchedHandler = this._markAsWatchedHandler.bind(this);
+    this._favoriteHandler = this._favoriteHandler.bind(this);
   }
 
   getTemplate() {
@@ -34,8 +37,38 @@ export default class Card extends AbstractView {
     this._callback.openPopupClick();
   }
 
+  _addToWatchlistHandler(evt) {
+    evt.preventDefault();
+    this._callback.addToWatchlistClick();
+  }
+
+  _markAsWatchedHandler(evt) {
+    evt.preventDefault();
+    this._callback.markAsWatchedClick();
+  }
+
+  _favoriteHandler(evt) {
+    evt.preventDefault();
+    this._callback.favoriteClick();
+  }
+
   setOpenPopupHandler(callback) {
     this._callback.openPopupClick = callback;
     this.getElement().querySelectorAll('.film-card__poster, .film-card__title, .film-card__comments').forEach((it) => it.addEventListener('click', this._openPopupHandler));
+  }
+
+  setAddToWatchlistHandler(callback) {
+    this._callback.addToWatchlistClick = callback;
+    this.getElement().querySelector('.film-card__controls-item--add-to-watchlist').addEventListener('click', this._addToWatchlistHandler);
+  }
+
+  setMarkAsWatchedHandler(callback) {
+    this._callback.markAsWatchedClick = callback;
+    this.getElement().querySelector('.film-card__controls-item--mark-as-watched').addEventListener('click', this._markAsWatchedHandler);
+  }
+
+  setFavoriteHandler(callback) {
+    this._callback.favoriteClick = callback;
+    this.getElement().querySelector('.film-card__controls-item--favorite').addEventListener('click', this._favoriteHandler);
   }
 }

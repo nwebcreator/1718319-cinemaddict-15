@@ -1,14 +1,23 @@
-import { getFullDate, getFormatedDuration, getCommentsDate } from '../utils.js';
+import { getFullDate, getFormatedDuration, getCommentsDate } from '../utils/common.js';
 import AbstractView from './abstract.js';
-
+import { mergeDeep } from '../utils/common.js';
 
 export default class Popup extends AbstractView {
-  constructor(movie, comments) {
+  constructor(movie, comments, changeData) {
     super();
     this._movie = movie;
     this._comments = comments;
 
+    this._changeData = changeData;
+
     this._closeClickHandler = this._closeClickHandler.bind(this);
+    this._addToWatchlistHandler = this._addToWatchlistHandler.bind(this);
+    this._markAsWatchedHandler = this._markAsWatchedHandler.bind(this);
+    this._favoriteHandler = this._favoriteHandler.bind(this);
+
+    this.setAddToWatchlistHandler();
+    this.setMarkAsWatchedHandler();
+    this.setFavoriteHandler();
   }
 
   getTemplate() {
@@ -143,8 +152,67 @@ export default class Popup extends AbstractView {
     this._callback.closeClick();
   }
 
+  _addToWatchlistHandler(evt) {
+    evt.preventDefault();
+    this._changeData(
+      mergeDeep(
+        {},
+        this._movie,
+        {
+          userDetails: {watchList: !this._movie.userDetails.watchList},
+        },
+      ),
+    );
+  }
+
+  _markAsWatchedHandler(evt) {
+    evt.preventDefault();
+    this._changeData(
+      mergeDeep(
+        {},
+        this._movie,
+        {
+          userDetails: {alreadyWatched: !this._movie.userDetails.alreadyWatched},
+        },
+      ),
+    );
+  }
+
+  _favoriteHandler(evt) {
+    evt.preventDefault();
+    this._changeData(
+      mergeDeep(
+        {},
+        this._movie,
+        {
+          userDetails: {favorite: !this._movie.userDetails.favorite},
+        },
+      ),
+    );
+  }
+
   setCloseClickHandler(callback) {
     this._callback.closeClick = callback;
     this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closeClickHandler);
+  }
+
+  setAddToWatchlistHandler() {
+    this.getElement().querySelector('.film-details__control-button--watchlist').addEventListener('click', this._addToWatchlistHandler);
+  }
+
+  setMarkAsWatchedHandler() {
+    this.getElement().querySelector('.film-details__control-button--watched').addEventListener('click', this._markAsWatchedHandler);
+  }
+
+  setFavoriteHandler() {
+    this.getElement().querySelector('.film-details__control-button--favorite').addEventListener('click', this._favoriteHandler);
+  }
+
+  getScrollTop(){
+    return this.getElement().scrollTop;
+  }
+
+  scrollByTop(scrollTop) {
+    this.getElement().scrollBy(0, scrollTop, 0);
   }
 }
