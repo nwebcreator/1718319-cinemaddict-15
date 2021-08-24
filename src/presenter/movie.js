@@ -1,6 +1,6 @@
 import CardView from '../view/card.js';
 import { mergeDeep } from '../utils/common.js';
-import { render, RenderPosition, replace } from '../utils/render.js';
+import { render, RenderPosition, replace, remove } from '../utils/render.js';
 
 export default class Movie {
   constructor(containerElement, openPopupHandler, changeData) {
@@ -32,6 +32,12 @@ export default class Movie {
     }
 
     replace(this._cardViewComponent, prevCardViewComponent);
+
+    remove(prevCardViewComponent);
+  }
+
+  destroy() {
+    remove(this._cardViewComponent);
   }
 
   _handleAddToWatchlist() {
