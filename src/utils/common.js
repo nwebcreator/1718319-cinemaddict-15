@@ -48,7 +48,7 @@ const getFormatedDuration = (duration) => {
   const hours = Math.floor(duration / 60);
   const minutes = duration % 60;
 
-  if(hours > 0){
+  if (hours > 0) {
     return `${hours}h ${minutes}m`;
   }
 
@@ -73,29 +73,6 @@ const updateItem = (items, update) => {
   ];
 };
 
-const isObject = (item) => (item && typeof item === 'object' && !Array.isArray(item));
+const pluralize = (count, word) => count > 1 ? `${word}s` : word;
 
-const mergeDeep = (target, ...sources) => {
-  if (!sources.length) {
-    return target;
-  }
-
-  const source = sources.shift();
-
-  if (isObject(target) && isObject(source)) {
-    for (const key in source) {
-      if (isObject(source[key])) {
-        if (!target[key]) {
-          Object.assign(target, { [key]: {} });
-        }
-        mergeDeep(target[key], source[key]);
-      } else {
-        Object.assign(target, { [key]: source[key] });
-      }
-    }
-  }
-
-  return mergeDeep(target, ...sources);
-};
-
-export { getRandomInteger, getRandomFloat, getRandomElementFromArray, getRandomUniqueElementsFromArray, generateDate, range, getYear, getFormatedDuration, getFullDate, getCommentsDate, updateItem, mergeDeep };
+export { getRandomInteger, getRandomFloat, getRandomElementFromArray, getRandomUniqueElementsFromArray, generateDate, range, getYear, getFormatedDuration, getFullDate, getCommentsDate, updateItem, pluralize };

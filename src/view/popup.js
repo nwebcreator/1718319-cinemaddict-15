@@ -1,13 +1,10 @@
-import { getFullDate, getFormatedDuration, getCommentsDate } from '../utils/common.js';
+import { getFullDate, getFormatedDuration, getCommentsDate, pluralize } from '../utils/common.js';
 import AbstractView from './abstract.js';
-import { mergeDeep } from '../utils/common.js';
 
 export default class Popup extends AbstractView {
-  constructor(movie, comments, changeData) {
+  constructor(movie, changeData) {
     super();
-    this._movie = movie;
-    this._comments = comments;
-
+    this._data = Popup.parseMovieToData(movie);
     this._changeData = changeData;
 
     this._closeClickHandler = this._closeClickHandler.bind(this);
@@ -20,6 +17,10 @@ export default class Popup extends AbstractView {
     this.setFavoriteHandler();
   }
 
+  getGenreMarkup(genre) {
+    return genre.map((it) => (`<span class="film-details__genre">${it}</span>`)).join('');
+  }
+
   getTemplate() {
     return `<section class="film-details">
     <form class="film-details__inner" action="" method="get">
@@ -29,75 +30,75 @@ export default class Popup extends AbstractView {
         </div>
         <div class="film-details__info-wrap">
           <div class="film-details__poster">
-            <img class="film-details__poster-img" src="./${this._movie.filmInfo.poster}" alt="">
+            <img class="film-details__poster-img" src="./${this._data.poster}" alt="">
   
-            <p class="film-details__age">${this._movie.filmInfo.ageRating}+</p>
+            <p class="film-details__age">${this._data.ageRating}+</p>
           </div>
   
           <div class="film-details__info">
             <div class="film-details__info-head">
               <div class="film-details__title-wrap">
-                <h3 class="film-details__title">${this._movie.filmInfo.title}</h3>
-                <p class="film-details__title-original">${this._movie.filmInfo.alternativeTitle}</p>
+                <h3 class="film-details__title">${this._data.title}</h3>
+                <p class="film-details__title-original">${this._data.alternativeTitle}</p>
               </div>
   
               <div class="film-details__rating">
-                <p class="film-details__total-rating">${this._movie.filmInfo.totalRaiting}</p>
+                <p class="film-details__total-rating">${this._data.totalRaiting}</p>
               </div>
             </div>
   
             <table class="film-details__table">
               <tr class="film-details__row">
                 <td class="film-details__term">Director</td>
-                <td class="film-details__cell">${this._movie.filmInfo.director}</td>
+                <td class="film-details__cell">${this._data.director}</td>
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Writers</td>
-                <td class="film-details__cell">${this._movie.filmInfo.writers.join(', ')}</td>
+                <td class="film-details__cell">${this._data.writers.join(', ')}</td>
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Actors</td>
-                <td class="film-details__cell">${this._movie.filmInfo.actors.join(', ')}</td>
+                <td class="film-details__cell">${this._data.actors.join(', ')}</td>
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Release Date</td>
-                <td class="film-details__cell">${getFullDate(this._movie.filmInfo.release.date)}</td>
+                <td class="film-details__cell">${getFullDate(this._data.releaseDate)}</td>
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Runtime</td>
-                <td class="film-details__cell">${getFormatedDuration(this._movie.filmInfo.runtime)}</td>
+                <td class="film-details__cell">${getFormatedDuration(this._data.runtime)}</td>
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Country</td>
-                <td class="film-details__cell">${this._movie.filmInfo.release.releaseCountry}</td>
+                <td class="film-details__cell">${this._data.releaseCountry}</td>
               </tr>
               <tr class="film-details__row">
-                <td class="film-details__term">${this._movie.filmInfo.genre.length > 1 ? 'Genres' : 'Genre'}</td>
+                <td class="film-details__term">${pluralize(this._data.genre.length, 'Genre')}</td>
                 <td class="film-details__cell">
-                  ${this._movie.filmInfo.genre.map((it) => (`<span class="film-details__genre">${it}</span>`)).join('')}
+                  ${this.getGenreMarkup(this._data.genre)}
                 </td>
               </tr>
             </table>
   
             <p class="film-details__film-description">
-              The film opens following a murder at a cabaret in Mexico City in 1936, and then presents the events leading up to it in flashback. The Great Flamarion (Erich von Stroheim) is an arrogant, friendless, and misogynous marksman who displays his trick gunshot act in the vaudeville circuit. His show features a beautiful assistant, Connie (Mary Beth Hughes) and her drunken husband Al (Dan Duryea), Flamarion's other assistant. Flamarion falls in love with Connie, the movie's femme fatale, and is soon manipulated by her into killing her no good husband during one of their acts.
+              ${this._data.description}
             </p>
           </div>
         </div>
   
         <section class="film-details__controls">
-          <button type="button" class="film-details__control-button film-details__control-button--watchlist${this._movie.userDetails.watchList ? ' film-details__control-button--active' : ''}" id="watchlist" name="watchlist">Add to watchlist</button>
-          <button type="button" class="film-details__control-button film-details__control-button--watched${this._movie.userDetails.alreadyWatched ? ' film-details__control-button--active' : ''}" id="watched" name="watched">Already watched</button>
-          <button type="button" class="film-details__control-button film-details__control-button--favorite${this._movie.userDetails.favorite ? ' film-details__control-button--active' : ''}" id="favorite" name="favorite">Add to favorites</button>
+          <button type="button" class="film-details__control-button film-details__control-button--watchlist${this._data.watchList ? ' film-details__control-button--active' : ''}" id="watchlist" name="watchlist">Add to watchlist</button>
+          <button type="button" class="film-details__control-button film-details__control-button--watched${this._data.alreadyWatched ? ' film-details__control-button--active' : ''}" id="watched" name="watched">Already watched</button>
+          <button type="button" class="film-details__control-button film-details__control-button--favorite${this._data.favorite ? ' film-details__control-button--active' : ''}" id="favorite" name="favorite">Add to favorites</button>
         </section>
       </div>
   
       <div class="film-details__bottom-container">
         <section class="film-details__comments-wrap">
-          <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${this._comments.length}</span></h3>
+          <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${this._data.movieComments.length}</span></h3>
   
           <ul class="film-details__comments-list">
-            ${this._comments.map((it) => (`<li class="film-details__comment">
+            ${this._data.movieComments.map((it) => (`<li class="film-details__comment">
               <span class="film-details__comment-emoji">
                 <img src="./images/emoji/${it.emotion}.png" width="55" height="55" alt="emoji-${it.emotion}">
               </span>
@@ -155,12 +156,14 @@ export default class Popup extends AbstractView {
   _addToWatchlistHandler(evt) {
     evt.preventDefault();
     this._changeData(
-      mergeDeep(
-        {},
-        this._movie,
-        {
-          userDetails: {watchList: !this._movie.userDetails.watchList},
-        },
+      Popup.parseDataToMovie(
+        Object.assign(
+          {},
+          this._data,
+          {
+            watchList: !this._data.watchList,
+          },
+        ),
       ),
     );
   }
@@ -168,12 +171,14 @@ export default class Popup extends AbstractView {
   _markAsWatchedHandler(evt) {
     evt.preventDefault();
     this._changeData(
-      mergeDeep(
-        {},
-        this._movie,
-        {
-          userDetails: {alreadyWatched: !this._movie.userDetails.alreadyWatched},
-        },
+      Popup.parseDataToMovie(
+        Object.assign(
+          {},
+          this._data,
+          {
+            alreadyWatched: !this._data.alreadyWatched,
+          },
+        ),
       ),
     );
   }
@@ -181,12 +186,14 @@ export default class Popup extends AbstractView {
   _favoriteHandler(evt) {
     evt.preventDefault();
     this._changeData(
-      mergeDeep(
-        {},
-        this._movie,
-        {
-          userDetails: {favorite: !this._movie.userDetails.favorite},
-        },
+      Popup.parseDataToMovie(
+        Object.assign(
+          {},
+          this._data,
+          {
+            favorite: !this._data.favorite,
+          },
+        ),
       ),
     );
   }
@@ -208,11 +215,24 @@ export default class Popup extends AbstractView {
     this.getElement().querySelector('.film-details__control-button--favorite').addEventListener('click', this._favoriteHandler);
   }
 
-  getScrollTop(){
+  getScrollTop() {
     return this.getElement().scrollTop;
   }
 
   scrollByTop(scrollTop) {
     this.getElement().scrollBy(0, scrollTop, 0);
+  }
+
+  static parseMovieToData(movie) {
+    return Object.assign(
+      {},
+      movie,
+    );
+  }
+
+  static parseDataToMovie(data) {
+    return Object.assign(
+      {},
+      data);
   }
 }

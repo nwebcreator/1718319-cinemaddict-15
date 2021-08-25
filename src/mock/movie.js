@@ -8,7 +8,7 @@ const COUNTRIES = ['England', 'Russia', 'USA', 'Japan', 'France'];
 const GENRES = ['Drama', 'Film-Noir', 'Mystery', 'Musical', 'Western', 'Comedy'];
 const DESCRIPTIONS = ['Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 'Cras aliquet varius magna, non porta ligula feugiat eget.', 'Fusce tristique felis at fermentum pharetra.', 'Aliquam id orci ut lectus varius viverra.', 'Nullam nunc ex, convallis sed finibus eget, sollicitudin eget ante.', 'Phasellus eros mauris, condimentum sed nibh vitae, sodales efficitur ipsum.', 'Sed blandit, eros vel aliquam faucibus, purus ex euismod diam, eu luctus nunc ante ut dui.', 'Sed sed nisi sed augue convallis suscipit in sed felis.', 'Aliquam erat volutpat.', 'Nunc fermentum tortor ac porta dapibus.', 'In rutrum ac purus sit amet tempus.'];
 const MAX_COMMENTS_COUNT = 5;
-const COMMENTS_AUTHORS = ['Masha', 'Nicolas', 'Natasha', 'Igor', 'Taras','Ignat', 'Ember', 'Ilon'];
+const COMMENTS_AUTHORS = ['Masha', 'Nicolas', 'Natasha', 'Igor', 'Taras', 'Ignat', 'Ember', 'Ilon'];
 const EMOTIONS = ['smile', 'sleeping', 'puke', 'angry'];
 
 const getComments = () => range(1, getRandomInteger(1, MAX_COMMENTS_COUNT)).map((it) => it.toString());
@@ -22,10 +22,8 @@ const generateFilmInfo = () => ({
   director: getRandomElementFromArray(DIRECTORS),
   writers: getRandomUniqueElementsFromArray(DIRECTORS, 1),
   actors: getRandomUniqueElementsFromArray(DIRECTORS, 2),
-  release: {
-    date: generateDate().toISOString(),
-    releaseCountry: getRandomElementFromArray(COUNTRIES),
-  },
+  releaseDate: generateDate().toISOString(),
+  releaseCountry: getRandomElementFromArray(COUNTRIES),
   runtime: getRandomInteger(50, 180),
   genre: getRandomUniqueElementsFromArray(GENRES, 1, 3),
   description: getRandomUniqueElementsFromArray(DESCRIPTIONS, 1, 5).join(' '),
@@ -38,12 +36,12 @@ const generateUseDetails = () => ({
   favorite: getRandomElementFromArray([true, false]),
 });
 
-const generateMovie = (id) => ({
+const generateMovie = (id) => Object.assign({}, {
   id: id.toString(),
   comments: getComments(),
-  filmInfo: generateFilmInfo(),
-  userDetails: generateUseDetails(),
-});
+},
+generateFilmInfo(),
+generateUseDetails());
 
 const generateMovies = () => {
   const movies = [];
@@ -53,7 +51,7 @@ const generateMovies = () => {
   return movies;
 };
 
-const generateComment = (id) =>({
+const generateComment = (id) => ({
   id: id.toString(),
   author: getRandomElementFromArray(COMMENTS_AUTHORS),
   comment: getRandomElementFromArray(DESCRIPTIONS),
@@ -63,7 +61,7 @@ const generateComment = (id) =>({
 
 const generateComments = () => {
   const comments = [];
-  for(let i = 0; i < MAX_COMMENTS_COUNT; i++) {
+  for (let i = 0; i < MAX_COMMENTS_COUNT; i++) {
     comments.push(generateComment(i + 1));
   }
 

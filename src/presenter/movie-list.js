@@ -69,8 +69,9 @@ export default class MovieList {
         return;
       }
 
-      const popupMovieComments = this._comments.filter((comment) => movie.comments.includes(comment.id));
-      const popup = new PopupView(movie, popupMovieComments, this._handleMovieChange);
+      const movieComments = this._comments.filter((comment) => movie.comments.includes(comment.id));
+      const popupMovie = Object.assign({}, movie, {movieComments});
+      const popup = new PopupView(popupMovie, this._handleMovieChange);
 
       const onEscKeyDown = (evt2) => {
         if (evt2.key === 'Escape' || evt2.key === 'Esc') {
@@ -173,7 +174,7 @@ export default class MovieList {
     const mostCommentedElement = this._mostCommentedFilmsExtraComponent.getFilmsContainer();
 
     const topRatedMovies = this._movies.slice();
-    topRatedMovies.sort((a, b) => b.filmInfo.totalRaiting - a.filmInfo.totalRaiting);
+    topRatedMovies.sort((a, b) => b.totalRaiting - a.totalRaiting);
     this._renderMovie(topRatedMovies[0], topRatedElement);
     this._renderMovie(topRatedMovies[1], topRatedElement);
 
