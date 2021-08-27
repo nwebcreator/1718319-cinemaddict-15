@@ -1,7 +1,7 @@
 import { getFullDate, getFormatedDuration, getCommentsDate, pluralize } from '../utils/common.js';
-import AbstractView from './abstract.js';
+import SmartView from './smart.js';
 
-export default class Popup extends AbstractView {
+export default class Popup extends SmartView {
   constructor(movie, changeData) {
     super();
     this._data = Popup.parseMovieToData(movie);
@@ -11,14 +11,22 @@ export default class Popup extends AbstractView {
     this._addToWatchlistHandler = this._addToWatchlistHandler.bind(this);
     this._markAsWatchedHandler = this._markAsWatchedHandler.bind(this);
     this._favoriteHandler = this._favoriteHandler.bind(this);
+    this._emojiInputHandler = this._emojiInputHandler.bind(this);
 
-    this.setAddToWatchlistHandler();
-    this.setMarkAsWatchedHandler();
-    this.setFavoriteHandler();
+    this._setInnerHandlers();
   }
 
   getGenreMarkup(genre) {
     return genre.map((it) => (`<span class="film-details__genre">${it}</span>`)).join('');
+  }
+
+  getSelectedEmojiMarkup() {
+    const { emoji } = this._data;
+    if (emoji) {
+      return `<img src="images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji}">`;
+    } else {
+      return '';
+    }
   }
 
   getTemplate() {
@@ -114,7 +122,7 @@ export default class Popup extends AbstractView {
           </ul>
   
           <div class="film-details__new-comment">
-            <div class="film-details__add-emoji-label"></div>
+            <div class="film-details__add-emoji-label">${this.getSelectedEmojiMarkup()}</div>
   
             <label class="film-details__comment-label">
               <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
@@ -148,9 +156,21 @@ export default class Popup extends AbstractView {
   </section>`;
   }
 
+  restoreHandlers() {
+    this._setInnerHandlers();
+    this.setCloseClickHandler(this._callback.closeClick);
+  }
+
   _closeClickHandler(evt) {
     evt.preventDefault();
     this._callback.closeClick();
+  }
+
+  _setInnerHandlers() {
+    this.setAddToWatchlistHandler();
+    this.setMarkAsWatchedHandler();
+    this.setFavoriteHandler();
+    this.setEmojiInputHandler();
   }
 
   _addToWatchlistHandler(evt) {
@@ -198,6 +218,15 @@ export default class Popup extends AbstractView {
     );
   }
 
+  _emojiInputHandler(evt) {
+    evt.preventDefault();
+    const scrollTop = this.getScrollTop();
+    this.updateData({
+      emoji: evt.target.value,
+    }, false);
+    this.scrollByTop(scrollTop);
+  }
+
   setCloseClickHandler(callback) {
     this._callback.closeClick = callback;
     this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closeClickHandler);
@@ -213,6 +242,10 @@ export default class Popup extends AbstractView {
 
   setFavoriteHandler() {
     this.getElement().querySelector('.film-details__control-button--favorite').addEventListener('click', this._favoriteHandler);
+  }
+
+  setEmojiInputHandler() {
+    this.getElement().querySelectorAll('.film-details__emoji-item').forEach((it) => it.addEventListener('input', this._emojiInputHandler));
   }
 
   getScrollTop() {
