@@ -20,13 +20,19 @@ const getProfileRating = (count) => {
 export default class Profile extends AbstractView {
   constructor(movies) {
     super();
-    this._movies = movies;
+    this._data = Profile.parseMoviesToData(movies);
   }
 
   getTemplate() {
     return `<section class="header__profile profile">
-    <p class="profile__rating">${getProfileRating(this._movies.filter((it) => it.userDetails.alreadyWatched).length)}</p>
+    <p class="profile__rating">${this._data.rating}</p>
     <img class="profile__avatar" src="images/bitmap@2x.png" alt="Avatar" width="35" height="35">
   </section>`;
+  }
+
+  static parseMoviesToData(movies) {
+    return {
+      rating: getProfileRating(movies.filter((movie) => movie.alreadyWatched).length),
+    };
   }
 }

@@ -19,21 +19,21 @@ const getWeightForNullDate = (dateA, dateB) => {
 };
 
 const sortMoviesByDate = (movieA, movieB) => {
-  const weight = getWeightForNullDate(movieB.filmInfo.release.date, movieA.filmInfo.release.date);
+  const weight = getWeightForNullDate(movieB.releaseDate, movieA.releaseDate);
 
   if (weight !== null) {
     return weight;
   }
 
-  return dayjs(movieB.filmInfo.release.date).diff(dayjs(movieA.filmInfo.release.date));
+  return dayjs(movieB.releaseDate).diff(dayjs(movieA.releaseDate));
 };
 
 const sortMoviesByRating = (movieA, movieB) => {
-  if (movieA.filmInfo.totalRaiting > movieB.filmInfo.totalRaiting) {
+  if (movieA.totalRaiting > movieB.totalRaiting) {
     return -1;
   }
 
-  if (movieA.filmInfo.totalRaiting < movieB.filmInfo.totalRaiting) {
+  if (movieA.totalRaiting < movieB.totalRaiting) {
     return 1;
   }
 

@@ -13,4 +13,8 @@ export default class FilmsListExtra extends AbstractView {
     </div>
   </section>`;
   }
+
+  getFilmsContainer() {
+    return this.getElement().querySelector('.films-list__container');
+  }
 }

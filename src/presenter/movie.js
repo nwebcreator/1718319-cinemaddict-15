@@ -1,5 +1,4 @@
 import CardView from '../view/card.js';
-import { mergeDeep } from '../utils/common.js';
 import { render, RenderPosition, replace, remove } from '../utils/render.js';
 
 export default class Movie {
@@ -42,11 +41,11 @@ export default class Movie {
 
   _handleAddToWatchlist() {
     this._changeData(
-      mergeDeep(
+      Object.assign(
         {},
         this._movie,
         {
-          userDetails: {watchList: !this._movie.userDetails.watchList},
+          watchList: !this._movie.watchList,
         },
       ),
     );
@@ -54,11 +53,11 @@ export default class Movie {
 
   _handleMarkAsWatched(){
     this._changeData(
-      mergeDeep(
+      Object.assign(
         {},
         this._movie,
         {
-          userDetails: {alreadyWatched: !this._movie.userDetails.alreadyWatched},
+          alreadyWatched: !this._movie.alreadyWatched,
         },
       ),
     );
@@ -66,11 +65,11 @@ export default class Movie {
 
   _handleFavorite(){
     this._changeData(
-      mergeDeep(
+      Object.assign(
         {},
         this._movie,
         {
-          userDetails: {favorite: !this._movie.userDetails.favorite},
+          favorite: !this._movie.favorite,
         },
       ),
     );

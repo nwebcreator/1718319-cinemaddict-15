@@ -8,4 +8,8 @@ export default class Board extends AbstractView {
     </section>
     </section>`;
   }
+
+  getFilmsContainer() {
+    return this.getElement().querySelector('.films-list');
+  }
 }
