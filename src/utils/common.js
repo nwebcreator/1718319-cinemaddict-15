@@ -1,4 +1,7 @@
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 
 const getRandomInteger = (min, max) => {
   if (max <= min) {
@@ -28,10 +31,12 @@ const getRandomUniqueElementsFromArray = (elements, min = 0, max = elements.leng
 };
 
 const generateDate = () => {
-  const maxDaysGap = 7;
-  const daysGap = getRandomInteger(-maxDaysGap, maxDaysGap);
-  const yearsGap = getRandomInteger(-100, -70);
-  return dayjs().add(daysGap, 'day').add(yearsGap, 'year').toDate();
+  const yearsGap = getRandomInteger(-3, 0);
+  const monthsGap = getRandomInteger(-11, 0);
+  const daysGap = getRandomInteger(-7, 0);
+  const hoursGap = getRandomInteger(-23, 0);
+  const minutesGap = getRandomInteger(-59, 0);
+  return dayjs().add(yearsGap, 'year').add(monthsGap, 'month').add(daysGap, 'day').add(hoursGap, 'hour').add(minutesGap, 'minute').toDate();
 };
 
 const range = (start, end) => {
@@ -48,16 +53,12 @@ const getFormatedDuration = (duration) => {
   const hours = Math.floor(duration / 60);
   const minutes = duration % 60;
 
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-
-  return `${minutes}m`;
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 };
 
 const getFullDate = (date) => dayjs(date).format('D MMM YYYY');
 
-const getCommentsDate = (date) => dayjs(date).format('YYYY/MM/DD hh:mm');
+const getCommentsDate = (date) => dayjs(date).fromNow();
 
 const updateItem = (items, update) => {
   const index = items.findIndex((item) => item.id === update.id);
