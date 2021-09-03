@@ -1,5 +1,6 @@
 import CardView from '../view/card.js';
 import { render, RenderPosition, replace, remove } from '../utils/render.js';
+import { UserAction, UpdateType } from '../const.js';
 
 export default class Movie {
   constructor(containerElement, openPopupHandler, changeData) {
@@ -24,8 +25,7 @@ export default class Movie {
     this._cardViewComponent.setMarkAsWatchedHandler(this._handleMarkAsWatched);
     this._cardViewComponent.setFavoriteHandler(this._handleFavorite);
 
-    if(prevCardViewComponent === null || prevCardViewComponent === undefined)
-    {
+    if (prevCardViewComponent === null || prevCardViewComponent === undefined) {
       render(this._containerElement, this._cardViewComponent, RenderPosition.BEFOREEND);
       return;
     }
@@ -41,6 +41,8 @@ export default class Movie {
 
   _handleAddToWatchlist() {
     this._changeData(
+      UserAction.UPDATE_MOVIE,
+      UpdateType.MINOR,
       Object.assign(
         {},
         this._movie,
@@ -51,8 +53,10 @@ export default class Movie {
     );
   }
 
-  _handleMarkAsWatched(){
+  _handleMarkAsWatched() {
     this._changeData(
+      UserAction.UPDATE_MOVIE,
+      UpdateType.MINOR,
       Object.assign(
         {},
         this._movie,
@@ -63,8 +67,10 @@ export default class Movie {
     );
   }
 
-  _handleFavorite(){
+  _handleFavorite() {
     this._changeData(
+      UserAction.UPDATE_MOVIE,
+      UpdateType.MINOR,
       Object.assign(
         {},
         this._movie,

@@ -60,20 +60,6 @@ const getFullDate = (date) => dayjs(date).format('D MMM YYYY');
 
 const getCommentsDate = (date) => dayjs(date).fromNow();
 
-const updateItem = (items, update) => {
-  const index = items.findIndex((item) => item.id === update.id);
-
-  if (index === -1) {
-    return items;
-  }
-
-  return [
-    ...items.slice(0, index),
-    update,
-    ...items.slice(index + 1),
-  ];
-};
-
 const pluralize = (count, word) => count > 1 ? `${word}s` : word;
 
-export { getRandomInteger, getRandomFloat, getRandomElementFromArray, getRandomUniqueElementsFromArray, generateDate, range, getYear, getFormatedDuration, getFullDate, getCommentsDate, updateItem, pluralize };
+export { getRandomInteger, getRandomFloat, getRandomElementFromArray, getRandomUniqueElementsFromArray, generateDate, range, getYear, getFormatedDuration, getFullDate, getCommentsDate, pluralize };
