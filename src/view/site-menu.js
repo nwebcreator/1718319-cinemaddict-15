@@ -1,28 +1,43 @@
 import AbstractView from './abstract.js';
 
+const createFilterItemTemplate = (filter, currentFilterType) => {
+  const {type, name, count} = filter;
+  return (
+    `<a href="#${type}" data-type="${type}" class="main-navigation__item${type === currentFilterType ? ' main-navigation__item--active' : ''}">${name}${count === undefined ? '' : (` <span class="main-navigation__item-count">${count}</span>`)}</a>`
+  );
+};
+
 export default class SiteMenu extends AbstractView {
-  constructor(movies) {
+  constructor(filters, currentFilterType) {
     super();
-    this._data = SiteMenu.parseMoviesToData(movies);
+    this._filters = filters;
+    this._currentFilterType = currentFilterType;
+
+    this._filterTypeChangeHandler = this._filterTypeChangeHandler.bind(this);
   }
 
   getTemplate() {
+    const filterItemsTemplate = this._filters
+      .map((filter) => createFilterItemTemplate(filter, this._currentFilterType))
+      .join('');
     return `<nav class="main-navigation">
     <div class="main-navigation__items">
-      <a href="#all" class="main-navigation__item main-navigation__item--active">All movies</a>
-      <a href="#watchlist" class="main-navigation__item">Watchlist <span class="main-navigation__item-count">${this._data.watchListCount}</span></a>
-      <a href="#history" class="main-navigation__item">History <span class="main-navigation__item-count">${this._data.alreadyWatchedCount}</span></a>
-      <a href="#favorites" class="main-navigation__item">Favorites <span class="main-navigation__item-count">${this._data.favoriteCount}</span></a>
+      ${filterItemsTemplate}
     </div>
     <a href="#stats" class="main-navigation__additional">Stats</a>
   </nav>`;
   }
 
-  static parseMoviesToData(movies) {
-    return {
-      watchListCount: movies.filter((it) => it.watchList).length,
-      alreadyWatchedCount: movies.filter((it) => it.alreadyWatched).length,
-      favoriteCount: movies.filter((it) => it.favorite).length,
-    };
+  _filterTypeChangeHandler(evt) {
+    if(evt.target.tagName !== 'A') {
+      return;
+    }
+    evt.preventDefault();
+    this._callback.filterTypeChange(evt.target.dataset.type);
+  }
+
+  setFilterTypeChangeHandler(callback) {
+    this._callback.filterTypeChange = callback;
+    this.getElement().querySelector('.main-navigation__items').addEventListener('click', this._filterTypeChangeHandler);
   }
 }

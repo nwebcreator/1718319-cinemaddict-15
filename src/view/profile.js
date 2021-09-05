@@ -1,4 +1,6 @@
 import AbstractView from './abstract.js';
+import { filter } from '../utils/filter.js';
+import { FilterType } from '../const.js';
 
 const NOVICE_MOVIE_COUNT = 1;
 const FAN_MOVIE_COUNT = 11;
@@ -18,21 +20,23 @@ const getProfileRating = (count) => {
 };
 
 export default class Profile extends AbstractView {
-  constructor(movies) {
+  constructor(moviesModel) {
     super();
-    this._data = Profile.parseMoviesToData(movies);
+    this._moviesModel = moviesModel;
+    this._rating = getProfileRating(filter[FilterType.HISTORY](this._moviesModel.getMovies()).length);
+    this._handleModelEvent = this._handleModelEvent.bind(this);
+    this._moviesModel.addObserver(this._handleModelEvent);
   }
 
   getTemplate() {
     return `<section class="header__profile profile">
-    <p class="profile__rating">${this._data.rating}</p>
+    <p class="profile__rating">${this._rating}</p>
     <img class="profile__avatar" src="images/bitmap@2x.png" alt="Avatar" width="35" height="35">
   </section>`;
   }
 
-  static parseMoviesToData(movies) {
-    return {
-      rating: getProfileRating(movies.filter((movie) => movie.alreadyWatched).length),
-    };
+  _handleModelEvent() {
+    this._rating = getProfileRating(filter[FilterType.HISTORY](this._moviesModel.getMovies()).length);
+    this.getElement().querySelector('.profile__rating').innerText = this._rating;
   }
 }
