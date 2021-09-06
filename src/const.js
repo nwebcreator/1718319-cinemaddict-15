@@ -23,4 +23,17 @@ const FilterType = {
   FAVORITES: 'favorites',
 };
 
-export { SortType, UserAction, UpdateType, FilterType };
+const MenuItem = {
+  MOVIES: 'movies',
+  STATS: 'stats',
+};
+
+const StatsPeriod = {
+  ALL_TIME: 'all-time',
+  TODAY: 'today',
+  WEEK: 'week',
+  MONTH: 'month',
+  YEAR: 'year',
+};
+
+export { SortType, UserAction, UpdateType, FilterType, MenuItem, StatsPeriod };
