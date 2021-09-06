@@ -2,7 +2,7 @@ import ProfileView from './view/profile.js';
 import StatsView from './view/stats.js';
 import FooterStatisticView from './view/footer-statistic.js';
 import { generateComments, generateMovies } from './mock/movie.js';
-import { RenderPosition, render, replace, remove } from './utils/render.js';
+import { RenderPosition, render, remove } from './utils/render.js';
 import MovieListPresenter from './presenter/movie-list.js';
 import MoviesModel from './model/movies.js';
 import FilterModel from './model/filter.js';
