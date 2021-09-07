@@ -1,6 +1,7 @@
 import CardView from '../view/card.js';
 import { render, RenderPosition, replace, remove } from '../utils/render.js';
 import { UserAction, UpdateType } from '../const.js';
+import dayjs from 'dayjs';
 
 export default class Movie {
   constructor(containerElement, openPopupHandler, changeData) {
@@ -62,6 +63,7 @@ export default class Movie {
         this._movie,
         {
           alreadyWatched: !this._movie.alreadyWatched,
+          watchingDate: this._movie.alreadyWatched ? undefined : dayjs().toISOString(),
         },
       ),
     );

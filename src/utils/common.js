@@ -49,10 +49,15 @@ const range = (start, end) => {
 
 const getYear = (date) => dayjs(date).year();
 
-const getFormatedDuration = (duration) => {
+const getHoursAndMinutes = (duration) => {
   const hours = Math.floor(duration / 60);
   const minutes = duration % 60;
 
+  return { hours, minutes };
+};
+
+const getFormatedDuration = (duration) => {
+  const { hours, minutes } = getHoursAndMinutes(duration);
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 };
 
@@ -62,4 +67,4 @@ const getCommentsDate = (date) => dayjs(date).fromNow();
 
 const pluralize = (count, word) => count > 1 ? `${word}s` : word;
 
-export { getRandomInteger, getRandomFloat, getRandomElementFromArray, getRandomUniqueElementsFromArray, generateDate, range, getYear, getFormatedDuration, getFullDate, getCommentsDate, pluralize };
+export { getRandomInteger, getRandomFloat, getRandomElementFromArray, getRandomUniqueElementsFromArray, generateDate, range, getYear, getHoursAndMinutes, getFormatedDuration, getFullDate, getCommentsDate, pluralize };

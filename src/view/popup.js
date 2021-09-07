@@ -2,6 +2,7 @@ import { getFullDate, getFormatedDuration, getCommentsDate, pluralize } from '..
 import SmartView from './smart.js';
 import { UpdateType, UserAction } from '../const.js';
 import he from 'he';
+import dayjs from 'dayjs';
 
 export default class Popup extends SmartView {
   constructor(movie, changeData) {
@@ -223,6 +224,7 @@ export default class Popup extends SmartView {
           this._data,
           {
             alreadyWatched: !this._data.alreadyWatched,
+            watchingDate: this._movie.alreadyWatched ? undefined : dayjs().toISOString(),
           },
         ),
       ),

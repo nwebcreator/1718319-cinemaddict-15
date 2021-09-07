@@ -1,6 +1,6 @@
 import { getRandomElementFromArray, generateDate, getRandomFloat, getRandomInteger, getRandomUniqueElementsFromArray, range } from '../utils/common.js';
 
-const TOTAL_MOVIES = 25;
+const TOTAL_MOVIES = 250;
 const TITLES = ['Made for each other', 'Popeye meets sinbad', 'Sagebrush trail', 'Santa claus conquers the martians', 'The dance of life', 'The great flamarion', 'The man with the golden arm'];
 const POSTERS = ['made-for-each-other.png', 'popeye-meets-sinbad.png', 'sagebrush-trail.jpg', 'santa-claus-conquers-the-martians.jpg', 'the-dance-of-life.jpg', 'the-great-flamarion.jpg', 'the-man-with-the-golden-arm.jpg'];
 const DIRECTORS = ['John Cromwell', 'Dave Fleischer', 'Armand Schaefer', 'Nicholas Webster', 'John Cromwell', 'Anthony Mann', 'Otto Ludwig Preminger'];
@@ -29,12 +29,15 @@ const generateFilmInfo = () => ({
   description: getRandomUniqueElementsFromArray(DESCRIPTIONS, 1, 5).join(' '),
 });
 
-const generateUseDetails = () => ({
-  watchList: getRandomElementFromArray([true, false]),
-  alreadyWatched: getRandomElementFromArray([true, false]),
-  watchingDate: generateDate().toISOString(),
-  favorite: getRandomElementFromArray([true, false]),
-});
+const generateUseDetails = () => {
+  const alreadyWatched = getRandomElementFromArray([true, false]);
+  return {
+    watchList: getRandomElementFromArray([true, false]),
+    alreadyWatched,
+    watchingDate: alreadyWatched ? generateDate().toISOString() : undefined,
+    favorite: getRandomElementFromArray([true, false]),
+  };
+};
 
 const generateMovie = (id) => Object.assign({}, {
   id: id.toString(),
