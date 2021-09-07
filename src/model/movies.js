@@ -1,26 +1,21 @@
+import dayjs from 'dayjs';
 import AbstractObserver from '../utils/abstract-observer.js';
-import { generateDate } from '../utils/common.js';
 
 export default class Movies extends AbstractObserver {
   constructor() {
     super();
     this._movies = [];
+    this._comments = [];
   }
 
-  setMovies(movies) {
+  setMovies(updateType, movies) {
     this._movies = movies.slice();
+
+    this._notify(updateType);
   }
 
   getMovies() {
     return this._movies;
-  }
-
-  setComments(comments) {
-    this._comments = comments.slice();
-  }
-
-  getComments() {
-    return this._comments;
   }
 
   updateMovie(updateType, update) {
@@ -50,7 +45,7 @@ export default class Movies extends AbstractObserver {
       id: `${Math.random()}`,
       author: 'Natasha',
       comment: update.comment,
-      date: generateDate().toISOString(),
+      date: dayjs().toISOString(),
       emotion: update.emotion,
     };
 
@@ -91,5 +86,69 @@ export default class Movies extends AbstractObserver {
     ];
 
     this._notify(updateType, updatedMovie);
+  }
+
+  static adaptToClient(movie) {
+    const adaptedMovie = Object.assign(
+      {},
+      {
+        id: movie.id,
+        title: movie['film_info'].title,
+        alternativeTitle: movie['film_info']['alternative_title'],
+        totalRaiting: movie['film_info']['total_rating'],
+        poster: movie['film_info'].poster,
+        ageRating: movie['film_info']['age_rating'],
+        director: movie['film_info'].director,
+        writers: movie['film_info'].writers,
+        actors: movie['film_info'].actors,
+        releaseDate: movie['film_info'].release.date,
+        releaseCountry: movie['film_info'].release['release_country'],
+        runtime: movie['film_info'].runtime,
+        genre: movie['film_info'].genre,
+        description: movie['film_info'].description,
+        watchList: movie['user_details'].watchlist,
+        alreadyWatched: movie['user_details']['already_watched'],
+        watchingDate: movie['user_details']['watching_date'],
+        favorite: movie['user_details'].favorite,
+        comments: movie.comments,
+      },
+    );
+
+    return adaptedMovie;
+  }
+
+  static adaptToServer(movie) {
+    const adaptedMovie = Object.assign(
+      {},
+      {
+        id: movie.id,
+        ['film_info']: {
+          title: movie.title,
+          ['alternative_title']: movie.alternativeTitle,
+          ['total_rating']: movie.totalRaiting,
+          poster: movie.poster,
+          ['age_rating']: movie.ageRating,
+          director: movie.director,
+          writers: movie.writers,
+          actors: movie.actors,
+          release: {
+            date: movie.releaseDate,
+            ['release_country']: movie.releaseCountry,
+          },
+          runtime: movie.runtime,
+          genre: movie.genre,
+          description: movie.description,
+        },
+        ['user_details']: {
+          watchlist: movie.watchList,
+          ['already_watched']: movie.alreadyWatched,
+          ['watching_date']: movie.watchingDate,
+          favorite: movie.favorite,
+        },
+        comments: movie.comments,
+      },
+    );
+
+    return adaptedMovie;
   }
 }

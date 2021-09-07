@@ -14,7 +14,7 @@ const renderChart = (chartCtx, movies) => {
   const uniqueGenres = makeItemsUnique(movieGenres);
   const moviesByGenreCounts = uniqueGenres.map((genre) => countMoviesByGenre(movies, genre));
 
-  chartCtx.height = BAR_HEIGHT * 5;
+  chartCtx.height = BAR_HEIGHT * uniqueGenres.length;
 
   const myChart = new Chart(chartCtx, {
     plugins: [ChartDataLabels],
