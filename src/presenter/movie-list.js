@@ -39,6 +39,7 @@ export default class MovieList {
 
     this._openPopup = this._openPopup.bind(this);
     this._closePopup = this._closePopup.bind(this);
+    this._onEscKeyDown = this._onEscKeyDown.bind(this);
     this._handleViewAction = this._handleViewAction.bind(this);
     this._handleModelEvent = this._handleModelEvent.bind(this);
     this._handleShowMoreButtonClick = this._handleShowMoreButtonClick.bind(this);
@@ -131,6 +132,14 @@ export default class MovieList {
     this._openedPopup = null;
   }
 
+  _onEscKeyDown(evt) {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      this._closePopup();
+      document.removeEventListener('keydown', this._onEscKeyDown);
+    }
+  }
+
   _openPopup(movie) {
     return () => {
       if (this._openedPopup) {
@@ -144,18 +153,8 @@ export default class MovieList {
           document.body.appendChild(popup.getElement());
           document.body.classList.add('hide-overflow');
           popup.setCloseClickHandler(this._closePopup);
-
           this._openedPopup = popup;
-
-          const onEscKeyDown = (evt2) => {
-            if (evt2.key === 'Escape' || evt2.key === 'Esc') {
-              evt2.preventDefault();
-              this._closePopup();
-              document.removeEventListener('keydown', onEscKeyDown);
-            }
-          };
-
-          document.addEventListener('keydown', onEscKeyDown);
+          document.addEventListener('keydown', this._onEscKeyDown);
         });
     };
   }
