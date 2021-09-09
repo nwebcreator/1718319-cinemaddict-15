@@ -21,7 +21,7 @@ const getTopGenre = (movies) =>{
     }
   }
 
-  const topGenre = Object.entries(allGenres).sort((a, b) => a[1] - b[1]);
+  const topGenre = Object.entries(allGenres).sort((a, b) => b[1] - a[1]);
   if(topGenre.length === 0) {
     return '';
   }

@@ -4,7 +4,7 @@ import AbstractView from './abstract.js';
 export default class Card extends AbstractView {
   constructor(movie) {
     super();
-    this._data = Card.parseMovieToData(movie);
+    this._data = movie;
 
     this._openPopupHandler = this._openPopupHandler.bind(this);
     this._addToWatchlistHandler = this._addToWatchlistHandler.bind(this);
@@ -70,12 +70,5 @@ export default class Card extends AbstractView {
   setFavoriteHandler(callback) {
     this._callback.favoriteClick = callback;
     this.getElement().querySelector('.film-card__controls-item--favorite').addEventListener('click', this._favoriteHandler);
-  }
-
-  static parseMovieToData(movie) {
-    return Object.assign(
-      {},
-      movie,
-    );
   }
 }

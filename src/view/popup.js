@@ -218,15 +218,13 @@ export default class Popup extends SmartView {
     this._changeData(
       UserAction.UPDATE_MOVIE,
       UpdateType.MINOR,
-      Popup.parseDataToMovie(
-        Object.assign(
-          {},
-          this._data,
-          {
-            alreadyWatched: !this._data.alreadyWatched,
-            watchingDate: this._movie.alreadyWatched ? undefined : dayjs().toISOString(),
-          },
-        ),
+      Object.assign(
+        {},
+        this._data,
+        {
+          alreadyWatched: !this._data.alreadyWatched,
+          watchingDate: dayjs().toISOString(),
+        },
       ),
     );
   }
@@ -236,14 +234,12 @@ export default class Popup extends SmartView {
     this._changeData(
       UserAction.UPDATE_MOVIE,
       UpdateType.MINOR,
-      Popup.parseDataToMovie(
-        Object.assign(
-          {},
-          this._data,
-          {
-            favorite: !this._data.favorite,
-          },
-        ),
+      Object.assign(
+        {},
+        this._data,
+        {
+          favorite: !this._data.favorite,
+        },
       ),
     );
   }
@@ -264,7 +260,7 @@ export default class Popup extends SmartView {
     if (evt.ctrlKey && evt.code === 'Enter') {
       evt.preventDefault();
 
-      if(this._data.emoji === undefined) {
+      if (this._data.emoji === undefined) {
         // validate
       } else {
         const comment = this.getElement().querySelector('.film-details__comment-input').value;

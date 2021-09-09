@@ -63,7 +63,7 @@ export default class Movie {
         this._movie,
         {
           alreadyWatched: !this._movie.alreadyWatched,
-          watchingDate: this._movie.alreadyWatched ? undefined : dayjs().toISOString(),
+          watchingDate: dayjs().toISOString(),
         },
       ),
     );

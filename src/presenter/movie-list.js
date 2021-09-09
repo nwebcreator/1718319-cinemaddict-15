@@ -2,6 +2,7 @@ import FilmsContainerView from '../view/films-container.js';
 import BoardView from '../view/board.js';
 import SortView from '../view/sort.js';
 import NoFilmView from '../view/no-film.js';
+import LoadingView from '../view/loading.js';
 import ShowMoreButtonView from '../view/show-more-button.js';
 import FilmsListExtraView from '../view/films-list-extra.js';
 import PopupView from '../view/popup.js';
@@ -14,13 +15,15 @@ import { filter } from '../utils/filter.js';
 const CARDS_COUNT_PER_STEP = 5;
 
 export default class MovieList {
-  constructor(mainContainer, moviesModel, filterModel) {
+  constructor(mainContainer, moviesModel, filterModel, api) {
     this._moviesModel = moviesModel;
     this._filterModel = filterModel;
+    this._api = api;
     this._mainContainer = mainContainer;
     this._renderedMovieCount = CARDS_COUNT_PER_STEP;
     this._moviePresenter = new Map();
     this._currentSortType = SortType.DEFAULT;
+    this._isLoading = true;
 
     this._sortComponent = null;
     this._siteMenuComponent = null;
@@ -29,12 +32,14 @@ export default class MovieList {
     this._boardComponent = new BoardView();
     this._filmsContainerComponent = new FilmsContainerView();
     this._noFilmComponent = new NoFilmView();
+    this._loadingComponent = new LoadingView();
     this._topRatedFilmsExtraComponent = new FilmsListExtraView('Top rated');
     this._mostCommentedFilmsExtraComponent = new FilmsListExtraView('Most commented');
     this._openedPopup = null;
 
     this._openPopup = this._openPopup.bind(this);
     this._closePopup = this._closePopup.bind(this);
+    this._onEscKeyDown = this._onEscKeyDown.bind(this);
     this._handleViewAction = this._handleViewAction.bind(this);
     this._handleModelEvent = this._handleModelEvent.bind(this);
     this._handleShowMoreButtonClick = this._handleShowMoreButtonClick.bind(this);
@@ -49,7 +54,7 @@ export default class MovieList {
   }
 
   destroy() {
-    this._clearBoard({resetRenderedMovieCount: true, resetSortType: true});
+    this._clearBoard({ resetRenderedMovieCount: true, resetSortType: true });
 
     remove(this._filmsContainerComponent);
     remove(this._boardComponent);
@@ -75,7 +80,9 @@ export default class MovieList {
   _handleViewAction(actionType, updateType, update) {
     switch (actionType) {
       case UserAction.UPDATE_MOVIE:
-        this._moviesModel.updateMovie(updateType, update);
+        this._api.updateMovie(update).then((response) => {
+          this._moviesModel.updateMovie(updateType, response);
+        });
         break;
       case UserAction.ADD_COMMENT:
         this._moviesModel.addComment(updateType, update);
@@ -102,13 +109,20 @@ export default class MovieList {
         this._clearBoard({ resetRenderedMovieCount: true, resetSortType: true });
         this._renderBoard();
         break;
+      case UpdateType.INIT:
+        this._isLoading = false;
+        remove(this._noFilmComponent);
+        remove(this._loadingComponent);
+        this._renderBoard();
+        break;
     }
 
     if (this._openedPopup) {
       const scrollTop = this._openedPopup.getScrollTop();
       this._closePopup();
-      this._openPopup(data)();
-      this._openedPopup.scrollByTop(scrollTop);
+      this._openPopup(data)().then(() => {
+        this._openedPopup.scrollByTop(scrollTop);
+      });
     }
   }
 
@@ -118,31 +132,30 @@ export default class MovieList {
     this._openedPopup = null;
   }
 
+  _onEscKeyDown(evt) {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      this._closePopup();
+      document.removeEventListener('keydown', this._onEscKeyDown);
+    }
+  }
+
   _openPopup(movie) {
     return () => {
       if (this._openedPopup) {
         return;
       }
 
-      const movieComments = this._moviesModel.getComments().slice().filter((comment) => movie.comments.includes(comment.id));
-      const popupMovie = Object.assign({}, movie, { movieComments });
-      const popup = new PopupView(popupMovie, this._handleViewAction);
-
-      const onEscKeyDown = (evt2) => {
-        if (evt2.key === 'Escape' || evt2.key === 'Esc') {
-          evt2.preventDefault();
-          this._closePopup();
-          document.removeEventListener('keydown', onEscKeyDown);
-        }
-      };
-
-      document.body.appendChild(popup.getElement());
-      document.body.classList.add('hide-overflow');
-
-      popup.setCloseClickHandler(this._closePopup);
-
-      document.addEventListener('keydown', onEscKeyDown);
-      this._openedPopup = popup;
+      return this._api.getComments(movie.id)
+        .then((movieComments) => {
+          const popupMovie = Object.assign({}, movie, { movieComments });
+          const popup = new PopupView(popupMovie, this._handleViewAction);
+          document.body.appendChild(popup.getElement());
+          document.body.classList.add('hide-overflow');
+          popup.setCloseClickHandler(this._closePopup);
+          this._openedPopup = popup;
+          document.addEventListener('keydown', this._onEscKeyDown);
+        });
     };
   }
 
@@ -193,6 +206,10 @@ export default class MovieList {
     this._noFilmComponent = new NoFilmView();
 
     render(this._mainContainer, this._noFilmComponent, RenderPosition.BEFOREEND);
+  }
+
+  _renderLoading() {
+    render(this._mainContainer, this._loadingComponent, RenderPosition.BEFOREEND);
   }
 
   _handleShowMoreButtonClick() {
@@ -263,6 +280,11 @@ export default class MovieList {
   }
 
   _renderBoard() {
+    if (this._isLoading) {
+      this._renderLoading();
+      return;
+    }
+
     const totalMoviesCount = this._moviesModel.getMovies().length;
     if (totalMoviesCount === 0) {
       this._renderNoFilms();
