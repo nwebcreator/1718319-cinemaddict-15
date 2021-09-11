@@ -3,6 +3,8 @@ import MoviesModel from './model/movies.js';
 const Method = {
   GET: 'GET',
   PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
 };
 
 const SuccessHTTPStatusRange = {
@@ -17,7 +19,7 @@ export default class Api {
   }
 
   getMovies() {
-    return this._load({url: 'movies'})
+    return this._load({ url: 'movies' })
       .then(Api.toJSON)
       .then((movies) => movies.map(MoviesModel.adaptToClient));
   }
@@ -27,15 +29,33 @@ export default class Api {
       url: `movies/${movie.id}`,
       method: Method.PUT,
       body: JSON.stringify(MoviesModel.adaptToServer(movie)),
-      headers: new Headers({'Content-Type': 'application/json'}),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
     })
       .then(Api.toJSON)
       .then(MoviesModel.adaptToClient);
   }
 
   getComments(movieId) {
-    return this._load({url: `comments/${movieId}`})
+    return this._load({ url: `comments/${movieId}` })
       .then(Api.toJSON);
+  }
+
+  addComment(comment) {
+    return this._load({
+      url: `comments/${comment.id}`,
+      method: Method.POST,
+      body: JSON.stringify({ comment: comment.comment, emotion: comment.emotion }),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    })
+      .then(Api.toJSON)
+      .then((response) => MoviesModel.adaptToClient(response.movie));
+  }
+
+  deleteComment(comment) {
+    return this._load({
+      url: `comments/${comment.commentId}`,
+      method: Method.DELETE,
+    });
   }
 
   _load({
@@ -48,7 +68,7 @@ export default class Api {
 
     return fetch(
       `${this._endPoint}/${url}`,
-      {method, body, headers},
+      { method, body, headers },
     )
       .then(Api.checkStatus)
       .catch(Api.catchError);
@@ -57,7 +77,7 @@ export default class Api {
   static checkStatus(response) {
     if (
       response.status < SuccessHTTPStatusRange.MIN ||
-        response.status > SuccessHTTPStatusRange.MAX
+      response.status > SuccessHTTPStatusRange.MAX
     ) {
       throw new Error(`${response.status}: ${response.statusText}`);
     }

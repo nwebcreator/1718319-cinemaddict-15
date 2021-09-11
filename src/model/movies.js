@@ -5,7 +5,6 @@ export default class Movies extends AbstractObserver {
   constructor() {
     super();
     this._movies = [];
-    this._comments = [];
   }
 
   setMovies(updateType, movies) {
@@ -52,11 +51,6 @@ export default class Movies extends AbstractObserver {
     const updatedMovie = this._movies[movieIndex];
     updatedMovie.comments.push(comment.id);
 
-    this._comments = [
-      comment,
-      ...this._comments,
-    ];
-
     this._notify(updateType, updatedMovie);
   }
 
@@ -72,17 +66,6 @@ export default class Movies extends AbstractObserver {
     updatedMovie.comments = [
       ...updatedMovie.comments.slice(0, movieCommentIndex),
       ...updatedMovie.comments.slice(movieCommentIndex + 1),
-    ];
-
-    const commentIndex = this._comments.findIndex((comment) => comment.id === update.commentId);
-
-    if (commentIndex === -1) {
-      throw new Error('Can\'t update unexisting movie');
-    }
-
-    this._comments = [
-      ...this._comments.slice(0, commentIndex),
-      ...this._comments.slice(commentIndex + 1),
     ];
 
     this._notify(updateType, updatedMovie);
