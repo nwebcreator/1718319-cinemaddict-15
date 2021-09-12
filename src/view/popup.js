@@ -4,11 +4,19 @@ import { UpdateType, UserAction } from '../const.js';
 import he from 'he';
 import dayjs from 'dayjs';
 
+const PopupState = {
+  DEFAULT: 'DEFAULT',
+  SAVING: 'SAVING',
+  ABORTING: 'ABORTING',
+};
+
 export default class Popup extends SmartView {
   constructor(movie, changeData) {
     super();
     this._data = movie;
     this._changeData = changeData;
+
+    this._currentState = PopupState.DEFAULT;
 
     this._closeClickHandler = this._closeClickHandler.bind(this);
     this._deleteCommentHandler = this._deleteCommentHandler.bind(this);
@@ -134,7 +142,7 @@ export default class Popup extends SmartView {
             <div class="film-details__add-emoji-label">${this.getSelectedEmojiMarkup()}</div>
   
             <label class="film-details__comment-label">
-              <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${this._data.commentText || ''}</textarea>
+              <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment" ${this._data.savign ? 'readOnly' : ''}>${this._data.commentText || ''}</textarea>
             </label>
   
             <div class="film-details__emoji-list">
@@ -165,6 +173,38 @@ export default class Popup extends SmartView {
   </section>`;
   }
 
+  setViewState(state) {
+    if (this._currentState === state) {
+      return;
+    }
+    this._currentState = state;
+
+    const scrollTop = this.getScrollTop();
+
+    switch (state) {
+      case PopupState.ABORTING:
+        this.shake(() => {
+          this.getElement().querySelectorAll('.film-details__comment-delete').forEach((button) => {
+            button.innerText = 'Delete';
+            button.disabled = false;
+          });
+        });
+        break;
+      case PopupState.SAVING:
+        this.updateData({
+          savign: true,
+        });
+        break;
+      case PopupState.DEFAULT:
+        this.updateData({
+          saving: false,
+          disabled: false,
+        });
+    }
+
+    this.scrollByTop(scrollTop);
+  }
+
   restoreHandlers() {
     this._setInnerHandlers();
     this.setCloseClickHandler(this._callback.closeClick);
@@ -190,6 +230,9 @@ export default class Popup extends SmartView {
     }
     evt.preventDefault();
     const commentId = evt.target.dataset.commentId;
+
+    evt.target.innerText = 'Deleting...';
+    evt.target.disabled = true;
 
     this._changeData(
       UserAction.DELETE_COMMENT,
@@ -261,9 +304,9 @@ export default class Popup extends SmartView {
       evt.preventDefault();
 
       if (this._data.emoji === undefined) {
-        // validate
+        this.shake();
       } else {
-        const comment = this.getElement().querySelector('.film-details__comment-input').value;
+        const comment = evt.target.value;
         const emotion = this._data.emoji;
         this._changeData(
           UserAction.ADD_COMMENT,
@@ -315,3 +358,5 @@ export default class Popup extends SmartView {
     this.getElement().scrollBy(0, scrollTop, 0);
   }
 }
+
+export { PopupState };

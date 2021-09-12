@@ -5,7 +5,7 @@ import NoFilmView from '../view/no-film.js';
 import LoadingView from '../view/loading.js';
 import ShowMoreButtonView from '../view/show-more-button.js';
 import FilmsListExtraView from '../view/films-list-extra.js';
-import PopupView from '../view/popup.js';
+import PopupView, { PopupState } from '../view/popup.js';
 import { render, RenderPosition, remove } from '../utils/render.js';
 import MoviePresenter from './movie.js';
 import { sortMoviesByDate, sortMoviesByRating } from '../utils/sort-movies.js';
@@ -80,15 +80,39 @@ export default class MovieList {
   _handleViewAction(actionType, updateType, update) {
     switch (actionType) {
       case UserAction.UPDATE_MOVIE:
-        this._api.updateMovie(update).then((response) => {
-          this._moviesModel.updateMovie(updateType, response);
-        });
+        this._api.updateMovie(update)
+          .then((response) => {
+            if (this._openedPopup) {
+              this._openedPopup.setViewState(PopupState.DEFAULT);
+            }
+            this._moviesModel.updateMovie(updateType, response);
+          })
+          .catch(() => {
+            if (this._openedPopup) {
+              this._openedPopup.setViewState(PopupState.ABORTING);
+            }
+          });
         break;
       case UserAction.ADD_COMMENT:
-        this._moviesModel.addComment(updateType, update);
+        this._openedPopup.setViewState(PopupState.SAVING);
+        this._api.addComment(update)
+          .then((response) => {
+            this._openedPopup.setViewState(PopupState.DEFAULT);
+            this._moviesModel.updateMovie(updateType, response);
+          })
+          .catch(() => {
+            this._openedPopup.setViewState(PopupState.ABORTING);
+          });
         break;
       case UserAction.DELETE_COMMENT:
-        this._moviesModel.deleteComment(updateType, update);
+        this._api.deleteComment(update)
+          .then(() => {
+            this._openedPopup.setViewState(PopupState.DEFAULT);
+            this._moviesModel.deleteComment(updateType, update);
+          })
+          .catch(() => {
+            this._openedPopup.setViewState(PopupState.ABORTING);
+          });
         break;
     }
   }
@@ -118,17 +142,14 @@ export default class MovieList {
     }
 
     if (this._openedPopup) {
-      const scrollTop = this._openedPopup.getScrollTop();
-      this._closePopup();
-      this._openPopup(data)().then(() => {
-        this._openedPopup.scrollByTop(scrollTop);
-      });
+      this._openPopup(data)();
     }
   }
 
   _closePopup() {
     remove(this._openedPopup);
     document.body.classList.remove('hide-overflow');
+    document.removeEventListener('keydown', this._onEscKeyDown);
     this._openedPopup = null;
   }
 
@@ -136,27 +157,27 @@ export default class MovieList {
     if (evt.key === 'Escape' || evt.key === 'Esc') {
       evt.preventDefault();
       this._closePopup();
-      document.removeEventListener('keydown', this._onEscKeyDown);
     }
   }
 
   _openPopup(movie) {
-    return () => {
-      if (this._openedPopup) {
-        return;
-      }
+    return () => this._api.getComments(movie.id)
+      .then((movieComments) => {
+        let scrollTop = 0;
+        if (this._openedPopup) {
+          scrollTop = this._openedPopup.getScrollTop();
+          this._closePopup();
+        }
 
-      return this._api.getComments(movie.id)
-        .then((movieComments) => {
-          const popupMovie = Object.assign({}, movie, { movieComments });
-          const popup = new PopupView(popupMovie, this._handleViewAction);
-          document.body.appendChild(popup.getElement());
-          document.body.classList.add('hide-overflow');
-          popup.setCloseClickHandler(this._closePopup);
-          this._openedPopup = popup;
-          document.addEventListener('keydown', this._onEscKeyDown);
-        });
-    };
+        const popupMovie = Object.assign({}, movie, { movieComments });
+        const popup = new PopupView(popupMovie, this._handleViewAction);
+        document.body.appendChild(popup.getElement());
+        document.body.classList.add('hide-overflow');
+        popup.setCloseClickHandler(this._closePopup);
+        this._openedPopup = popup;
+        this._openedPopup.scrollByTop(scrollTop);
+        document.addEventListener('keydown', this._onEscKeyDown);
+      });
   }
 
   _handleSortTypeChange(sortType) {
