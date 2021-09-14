@@ -1,6 +1,7 @@
-import { getFullDate, getFormatedDuration, getCommentsDate, pluralize } from '../utils/common.js';
+import { getFullDate, getFormatedDuration, getCommentsDate, pluralize, isOnline } from '../utils/common.js';
 import SmartView from './smart.js';
 import { UpdateType, UserAction } from '../const.js';
+import { toast } from '../utils/toast.js';
 import he from 'he';
 import dayjs from 'dayjs';
 
@@ -129,7 +130,8 @@ export default class Popup extends SmartView {
           <button type="button" class="film-details__control-button film-details__control-button--favorite${this._data.favorite ? ' film-details__control-button--active' : ''}" id="favorite" name="favorite">Add to favorites</button>
         </section>
       </div>
-  
+
+      ${isOnline() ? (`
       <div class="film-details__bottom-container">
         <section class="film-details__comments-wrap">
           <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${this._data.movieComments.length}</span></h3>
@@ -168,7 +170,7 @@ export default class Popup extends SmartView {
             </div>
           </div>
         </section>
-      </div>
+      </div>`) : ''}
     </form>
   </section>`;
   }
@@ -229,6 +231,12 @@ export default class Popup extends SmartView {
       return;
     }
     evt.preventDefault();
+
+    if (!isOnline()) {
+      toast('You can\'t delete comment offline');
+      return;
+    }
+
     const commentId = evt.target.dataset.commentId;
 
     evt.target.innerText = 'Deleting...';
@@ -303,6 +311,11 @@ export default class Popup extends SmartView {
     if (evt.ctrlKey && evt.code === 'Enter') {
       evt.preventDefault();
 
+      if(!isOnline()) {
+        toast('You can\'t add comment offline');
+        return;
+      }
+
       if (this._data.emoji === undefined) {
         this.shake();
       } else {
@@ -327,7 +340,9 @@ export default class Popup extends SmartView {
   }
 
   setDeleteCommentHandler() {
-    this.getElement().querySelector('.film-details__comments-wrap').addEventListener('click', this._deleteCommentHandler);
+    if (isOnline()) {
+      this.getElement().querySelector('.film-details__comments-wrap').addEventListener('click', this._deleteCommentHandler);
+    }
   }
 
   setAddToWatchlistHandler() {
@@ -343,11 +358,15 @@ export default class Popup extends SmartView {
   }
 
   setEmojiInputHandler() {
-    this.getElement().querySelectorAll('.film-details__emoji-item').forEach((it) => it.addEventListener('input', this._emojiInputHandler));
+    if (isOnline()) {
+      this.getElement().querySelectorAll('.film-details__emoji-item').forEach((it) => it.addEventListener('input', this._emojiInputHandler));
+    }
   }
 
   setAddCommentHandler() {
-    this.getElement().querySelector('.film-details__comment-input').addEventListener('keydown', this._addCommentHandler);
+    if (isOnline()) {
+      this.getElement().querySelector('.film-details__comment-input').addEventListener('keydown', this._addCommentHandler);
+    }
   }
 
   getScrollTop() {
