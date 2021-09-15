@@ -31,4 +31,6 @@ const getCommentsDate = (date) => dayjs(date).fromNow();
 
 const pluralize = (count, word) => count > 1 ? `${word}s` : word;
 
-export { getRandomInteger, getYear, getHoursAndMinutes, getFormatedDuration, getFullDate, getCommentsDate, pluralize };
+const isOnline = () => window.navigator.onLine;
+
+export { getRandomInteger, getYear, getHoursAndMinutes, getFormatedDuration, getFullDate, getCommentsDate, pluralize, isOnline };
