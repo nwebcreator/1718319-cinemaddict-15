@@ -13,6 +13,7 @@ import { SortType, UpdateType, UserAction } from '../const.js';
 import { filter } from '../utils/filter.js';
 
 const CARDS_COUNT_PER_STEP = 5;
+const EXTRA_CARDS_COUNT = 2;
 
 export default class MovieList {
   constructor(mainContainer, moviesModel, filterModel, api) {
@@ -263,19 +264,25 @@ export default class MovieList {
     render(this._boardComponent, this._topRatedFilmsExtraComponent, RenderPosition.BEFOREEND);
     render(this._boardComponent, this._mostCommentedFilmsExtraComponent, RenderPosition.BEFOREEND);
 
-    const topRatedElement = this._topRatedFilmsExtraComponent.getFilmsContainer();
-    const mostCommentedElement = this._mostCommentedFilmsExtraComponent.getFilmsContainer();
+    const topRatedMovies = movies.slice().filter((it) => it.totalRaiting > 0);
+    if (topRatedMovies.length > 0) {
+      topRatedMovies.sort((a, b) => b.totalRaiting - a.totalRaiting);
+      for (const movie of topRatedMovies.slice(0, EXTRA_CARDS_COUNT)) {
+        this._renderMovie(movie, this._topRatedFilmsExtraComponent.getFilmsContainer());
+      }
+    } else {
+      remove(this._topRatedFilmsExtraComponent);
+    }
 
-    const topRatedMovies = movies.slice();
-    topRatedMovies.sort((a, b) => b.totalRaiting - a.totalRaiting);
-    this._renderMovie(topRatedMovies[0], topRatedElement);
-    this._renderMovie(topRatedMovies[1], topRatedElement);
-
-    const mostCommentedMovies = movies.slice();
-    mostCommentedMovies.sort((a, b) => b.comments.length - a.comments.length);
-
-    this._renderMovie(mostCommentedMovies[0], mostCommentedElement);
-    this._renderMovie(mostCommentedMovies[1], mostCommentedElement);
+    const mostCommentedMovies = movies.slice().filter((it) => it.comments.length > 0);
+    if (mostCommentedMovies.length > 0) {
+      mostCommentedMovies.sort((a, b) => b.comments.length - a.comments.length);
+      for (const movie of mostCommentedMovies.slice(0, EXTRA_CARDS_COUNT)) {
+        this._renderMovie(movie, this._mostCommentedFilmsExtraComponent.getFilmsContainer());
+      }
+    } else {
+      remove(this._mostCommentedFilmsExtraComponent);
+    }
   }
 
   _clearBoard({ resetRenderedMovieCount = false, resetSortType = false } = {}) {
