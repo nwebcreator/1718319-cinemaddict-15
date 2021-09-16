@@ -18,6 +18,11 @@ export default class Sort extends AbstractView {
   </ul>`;
   }
 
+  setSortTypeChangeHandler(callback) {
+    this._callback.sortTypeChange = callback;
+    this.getElement().addEventListener('click', this._sortTypeChangeHandler);
+  }
+
   _sortTypeChangeHandler(evt) {
     if (evt.target.tagName !== 'A') {
       return;
@@ -33,10 +38,5 @@ export default class Sort extends AbstractView {
         sortButton.classList.remove('sort__button--active');
       }
     });
-  }
-
-  setSortTypeChangeHandler(callback) {
-    this._callback.sortTypeChange = callback;
-    this.getElement().addEventListener('click', this._sortTypeChangeHandler);
   }
 }

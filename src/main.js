@@ -36,7 +36,7 @@ render(headerElement, new ProfileView(moviesModel), RenderPosition.BEFOREEND);
 let statsView = null;
 const movieListPresenter = new MovieListPresenter(mainElement, moviesModel, filterModel, apiWithProvider);
 
-const handleSiteMenuClick = (menuItem) => {
+const siteMenuClickHandler = (menuItem) => {
   switch (menuItem) {
     case MenuItem.MOVIES:
       // Показать доску
@@ -54,7 +54,7 @@ const handleSiteMenuClick = (menuItem) => {
   }
 };
 
-const siteMenuPresenter = new SiteMenuPresenter(mainElement, moviesModel, filterModel, handleSiteMenuClick);
+const siteMenuPresenter = new SiteMenuPresenter(mainElement, moviesModel, filterModel, siteMenuClickHandler);
 siteMenuPresenter.init();
 movieListPresenter.init();
 render(footerStatisticsElement, new FooterStatisticView(moviesModel), RenderPosition.BEFOREEND);

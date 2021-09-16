@@ -4,12 +4,12 @@ import {filter} from '../utils/filter.js';
 import {FilterType, MenuItem, UpdateType} from '../const.js';
 
 export default class SiteMenu {
-  constructor(siteMenuContainer, moviesModel, filterModel, handleSiteMenuClick) {
+  constructor(siteMenuContainer, moviesModel, filterModel, siteMenuClickHandler) {
     this._siteMenuContainer = siteMenuContainer;
     this._moviesModel = moviesModel;
     this._filterModel = filterModel;
     this._currentMenuItem = MenuItem.MOVIES;
-    this._handleSiteMenuClick = handleSiteMenuClick;
+    this._siteMenuClickHandler = siteMenuClickHandler;
     this._siteMenuComponent = null;
 
     this._handleSiteMenuItemChange = this._handleSiteMenuItemChange.bind(this);
@@ -37,28 +37,6 @@ export default class SiteMenu {
     remove(prevFilterComponent);
   }
 
-  _handleModelEvent() {
-    this.init();
-  }
-
-  _handleSiteMenuItemChange(menuItem) {
-    if(this._currentMenuItem === menuItem) {
-      return;
-    }
-
-    this._currentMenuItem = menuItem;
-    this._handleSiteMenuClick(menuItem);
-    this._handleModelEvent();
-  }
-
-  _handleFilterTypeChange(filterType) {
-    if (this._filterModel.getFilter() === filterType) {
-      return;
-    }
-
-    this._filterModel.setFilter(UpdateType.MAJOR, filterType);
-  }
-
   _getFilters() {
     const movies = this._moviesModel.getMovies();
     return [
@@ -83,5 +61,27 @@ export default class SiteMenu {
         count: filter[FilterType.FAVORITES](movies).length,
       },
     ];
+  }
+
+  _handleModelEvent() {
+    this.init();
+  }
+
+  _handleSiteMenuItemChange(menuItem) {
+    if(this._currentMenuItem === menuItem) {
+      return;
+    }
+
+    this._currentMenuItem = menuItem;
+    this._siteMenuClickHandler(menuItem);
+    this._handleModelEvent();
+  }
+
+  _handleFilterTypeChange(filterType) {
+    if (this._filterModel.getFilter() === filterType) {
+      return;
+    }
+
+    this._filterModel.setFilter(UpdateType.MAJOR, filterType);
   }
 }

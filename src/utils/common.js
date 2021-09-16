@@ -33,4 +33,13 @@ const pluralize = (count, word) => count > 1 ? `${word}s` : word;
 
 const isOnline = () => window.navigator.onLine;
 
-export { getRandomInteger, getYear, getHoursAndMinutes, getFormatedDuration, getFullDate, getCommentsDate, pluralize, isOnline };
+const cutText = (text, limit) => {
+  if (text.length <= limit) {
+    return text;
+  }
+
+  text = text.slice(0, limit);
+  return `${text}...`;
+};
+
+export { getRandomInteger, getYear, getHoursAndMinutes, getFormatedDuration, getFullDate, getCommentsDate, pluralize, isOnline, cutText };

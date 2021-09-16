@@ -30,35 +30,6 @@ export default class Popup extends SmartView {
     this._setInnerHandlers();
   }
 
-  getGenreMarkup(genre) {
-    return genre.map((it) => (`<span class="film-details__genre">${it}</span>`)).join('');
-  }
-
-  getSelectedEmojiMarkup() {
-    const { emoji } = this._data;
-    if (emoji) {
-      return `<img src="images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji}">`;
-    } else {
-      return '';
-    }
-  }
-
-  getCommentsMarkup() {
-    return this._data.movieComments.map((comment) => `<li class="film-details__comment">
-    <span class="film-details__comment-emoji">
-      <img src="./images/emoji/${comment.emotion}.png" width="55" height="55" alt="emoji-${comment.emotion}">
-    </span>
-    <div>
-      <p class="film-details__comment-text">${he.encode(comment.comment)}</p>
-      <p class="film-details__comment-info">
-        <span class="film-details__comment-author">${comment.author}</span>
-        <span class="film-details__comment-day">${getCommentsDate(comment.date)}</span>
-        <button class="film-details__comment-delete" data-comment-id="${comment.id}">Delete</button>
-      </p>
-    </div>
-  </li>`).join('');
-  }
-
   getTemplate() {
     return `<section class="film-details">
     <form class="film-details__inner" action="" method="get">
@@ -175,6 +146,35 @@ export default class Popup extends SmartView {
   </section>`;
   }
 
+  getGenreMarkup(genre) {
+    return genre.map((it) => (`<span class="film-details__genre">${it}</span>`)).join('');
+  }
+
+  getSelectedEmojiMarkup() {
+    const { emoji } = this._data;
+    if (emoji) {
+      return `<img src="images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji}">`;
+    } else {
+      return '';
+    }
+  }
+
+  getCommentsMarkup() {
+    return this._data.movieComments.map((comment) => `<li class="film-details__comment">
+    <span class="film-details__comment-emoji">
+      <img src="./images/emoji/${comment.emotion}.png" width="55" height="55" alt="emoji-${comment.emotion}">
+    </span>
+    <div>
+      <p class="film-details__comment-text">${he.encode(comment.comment)}</p>
+      <p class="film-details__comment-info">
+        <span class="film-details__comment-author">${comment.author}</span>
+        <span class="film-details__comment-day">${getCommentsDate(comment.date)}</span>
+        <button class="film-details__comment-delete" data-comment-id="${comment.id}">Delete</button>
+      </p>
+    </div>
+  </li>`).join('');
+  }
+
   setViewState(state) {
     if (this._currentState === state) {
       return;
@@ -210,6 +210,49 @@ export default class Popup extends SmartView {
   restoreHandlers() {
     this._setInnerHandlers();
     this.setCloseClickHandler(this._callback.closeClick);
+  }
+
+  setCloseClickHandler(callback) {
+    this._callback.closeClick = callback;
+    this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closeClickHandler);
+  }
+
+  setDeleteCommentHandler() {
+    if (isOnline()) {
+      this.getElement().querySelector('.film-details__comments-wrap').addEventListener('click', this._deleteCommentHandler);
+    }
+  }
+
+  setAddToWatchlistHandler() {
+    this.getElement().querySelector('.film-details__control-button--watchlist').addEventListener('click', this._addToWatchlistHandler);
+  }
+
+  setMarkAsWatchedHandler() {
+    this.getElement().querySelector('.film-details__control-button--watched').addEventListener('click', this._markAsWatchedHandler);
+  }
+
+  setFavoriteHandler() {
+    this.getElement().querySelector('.film-details__control-button--favorite').addEventListener('click', this._favoriteHandler);
+  }
+
+  setEmojiInputHandler() {
+    if (isOnline()) {
+      this.getElement().querySelectorAll('.film-details__emoji-item').forEach((it) => it.addEventListener('input', this._emojiInputHandler));
+    }
+  }
+
+  setAddCommentHandler() {
+    if (isOnline()) {
+      this.getElement().querySelector('.film-details__comment-input').addEventListener('keydown', this._addCommentHandler);
+    }
+  }
+
+  getScrollTop() {
+    return this.getElement().scrollTop;
+  }
+
+  scrollByTop(scrollTop) {
+    this.getElement().scrollBy(0, scrollTop, 0);
   }
 
   _closeClickHandler(evt) {
@@ -332,49 +375,6 @@ export default class Popup extends SmartView {
         );
       }
     }
-  }
-
-  setCloseClickHandler(callback) {
-    this._callback.closeClick = callback;
-    this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closeClickHandler);
-  }
-
-  setDeleteCommentHandler() {
-    if (isOnline()) {
-      this.getElement().querySelector('.film-details__comments-wrap').addEventListener('click', this._deleteCommentHandler);
-    }
-  }
-
-  setAddToWatchlistHandler() {
-    this.getElement().querySelector('.film-details__control-button--watchlist').addEventListener('click', this._addToWatchlistHandler);
-  }
-
-  setMarkAsWatchedHandler() {
-    this.getElement().querySelector('.film-details__control-button--watched').addEventListener('click', this._markAsWatchedHandler);
-  }
-
-  setFavoriteHandler() {
-    this.getElement().querySelector('.film-details__control-button--favorite').addEventListener('click', this._favoriteHandler);
-  }
-
-  setEmojiInputHandler() {
-    if (isOnline()) {
-      this.getElement().querySelectorAll('.film-details__emoji-item').forEach((it) => it.addEventListener('input', this._emojiInputHandler));
-    }
-  }
-
-  setAddCommentHandler() {
-    if (isOnline()) {
-      this.getElement().querySelector('.film-details__comment-input').addEventListener('keydown', this._addCommentHandler);
-    }
-  }
-
-  getScrollTop() {
-    return this.getElement().scrollTop;
-  }
-
-  scrollByTop(scrollTop) {
-    this.getElement().scrollBy(0, scrollTop, 0);
   }
 }
 

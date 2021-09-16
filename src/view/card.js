@@ -1,4 +1,4 @@
-import { getYear, getFormatedDuration } from '../utils/common.js';
+import { getYear, getFormatedDuration, cutText } from '../utils/common.js';
 import AbstractView from './abstract.js';
 
 export default class Card extends AbstractView {
@@ -22,7 +22,7 @@ export default class Card extends AbstractView {
       <span class="film-card__genre">${this._data.genre.join(', ')}</span>
     </p>
     <img src="./${this._data.poster}" alt="" class="film-card__poster">
-    <p class="film-card__description">${this._data.description}</p>
+    <p class="film-card__description">${cutText(this._data.description, 140)}</p>
     <a class="film-card__comments">${this._data.comments.length} comments</a>
     <div class="film-card__controls">
       <button class="film-card__controls-item film-card__controls-item--add-to-watchlist${this._data.watchList ? ' film-card__controls-item--active' : ''}" type="button">Add to watchlist</button>
@@ -30,26 +30,6 @@ export default class Card extends AbstractView {
       <button class="film-card__controls-item film-card__controls-item--favorite${this._data.favorite ? ' film-card__controls-item--active' : ''}" type="button">Mark as favorite</button>
     </div>
   </article>`;
-  }
-
-  _openPopupHandler(evt) {
-    evt.preventDefault();
-    this._callback.openPopupClick();
-  }
-
-  _addToWatchlistHandler(evt) {
-    evt.preventDefault();
-    this._callback.addToWatchlistClick();
-  }
-
-  _markAsWatchedHandler(evt) {
-    evt.preventDefault();
-    this._callback.markAsWatchedClick();
-  }
-
-  _favoriteHandler(evt) {
-    evt.preventDefault();
-    this._callback.favoriteClick();
   }
 
   setOpenPopupHandler(callback) {
@@ -70,5 +50,25 @@ export default class Card extends AbstractView {
   setFavoriteHandler(callback) {
     this._callback.favoriteClick = callback;
     this.getElement().querySelector('.film-card__controls-item--favorite').addEventListener('click', this._favoriteHandler);
+  }
+
+  _openPopupHandler(evt) {
+    evt.preventDefault();
+    this._callback.openPopupClick();
+  }
+
+  _addToWatchlistHandler(evt) {
+    evt.preventDefault();
+    this._callback.addToWatchlistClick();
+  }
+
+  _markAsWatchedHandler(evt) {
+    evt.preventDefault();
+    this._callback.markAsWatchedClick();
+  }
+
+  _favoriteHandler(evt) {
+    evt.preventDefault();
+    this._callback.favoriteClick();
   }
 }

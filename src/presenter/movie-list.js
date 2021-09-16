@@ -78,6 +78,202 @@ export default class MovieList {
     }
   }
 
+  _closePopup() {
+    remove(this._openedPopup);
+    document.body.classList.remove('hide-overflow');
+    document.removeEventListener('keydown', this._onEscKeyDown);
+    this._openedPopup = null;
+  }
+
+  _openPopup(movie) {
+    return () => this._api.getComments(movie.id)
+      .then((movieComments) => {
+        let scrollTop = 0;
+        if (this._openedPopup) {
+          scrollTop = this._openedPopup.getScrollTop();
+          this._closePopup();
+        }
+
+        const popupMovie = Object.assign({}, movie, { movieComments });
+        const popup = new PopupView(popupMovie, this._handleViewAction);
+        document.body.appendChild(popup.getElement());
+        document.body.classList.add('hide-overflow');
+        popup.setCloseClickHandler(this._closePopup);
+        this._openedPopup = popup;
+        this._openedPopup.scrollByTop(scrollTop);
+        document.addEventListener('keydown', this._onEscKeyDown);
+      });
+  }
+
+  _renderSort() {
+    if (this._sortComponent !== null) {
+      this._sortComponent = null;
+    }
+
+    this._sortComponent = new SortView(this._currentSortType);
+    this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange); // передаём коллбек смены сортировки во вьюху сортировки
+
+    render(this._boardComponent, this._sortComponent, RenderPosition.BEFORE);
+  }
+
+  _renderMovie(movie, container) {
+    const moviePresenter = new MoviePresenter(container || this._filmsContainerComponent.getFilmsContainer(), this._openPopup, this._handleViewAction);
+    moviePresenter.init(movie);
+    let presenters = this._moviePresenter.get(movie.id);
+    if (presenters === undefined) {
+      presenters = [moviePresenter];
+      this._moviePresenter.set(movie.id, presenters);
+    } else {
+      presenters.push(moviePresenter);
+    }
+  }
+
+  _renderMovies(movies) {
+    // Метод для рендеринга N-задач за раз
+    movies.forEach((movie) => this._renderMovie(movie));
+  }
+
+  _renderNoFilms() {
+    if (this._noFilmComponent !== null) {
+      this._noFilmComponent = null;
+    }
+
+    const filterType = this._filterModel.getFilter();
+    this._noFilmComponent = new NoFilmView(filterType);
+
+    render(this._boardComponent, this._noFilmComponent, RenderPosition.BEFOREEND);
+  }
+
+  _renderLoading() {
+    render(this._boardComponent, this._loadingComponent, RenderPosition.BEFOREEND);
+  }
+
+  _renderShowMoreButton() {
+    if (this._showMoreButtonComponent !== null) {
+      this._showMoreButtonComponent = null;
+    }
+
+    this._showMoreButtonComponent = new ShowMoreButtonView();
+    this._showMoreButtonComponent.setClickHandler(this._handleShowMoreButtonClick);
+    render(this._filmsContainerComponent.getFilmsContainer(), this._showMoreButtonComponent, RenderPosition.AFTER);
+  }
+
+  _renderExtraFilms() {
+    const movies = this._moviesModel.getMovies();
+    if (movies.length === 0) {
+      return;
+    }
+    render(this._boardComponent, this._topRatedFilmsExtraComponent, RenderPosition.BEFOREEND);
+    render(this._boardComponent, this._mostCommentedFilmsExtraComponent, RenderPosition.BEFOREEND);
+
+    const topRatedMovies = movies.slice().filter((it) => it.totalRaiting > 0);
+    if (topRatedMovies.length > 0) {
+      topRatedMovies.sort((a, b) => b.totalRaiting - a.totalRaiting);
+      const topRatedFilmsContainer = this._topRatedFilmsExtraComponent.getFilmsContainer();
+      for (const movie of topRatedMovies.slice(0, EXTRA_CARDS_COUNT)) {
+        this._renderMovie(movie, topRatedFilmsContainer);
+      }
+    } else {
+      remove(this._topRatedFilmsExtraComponent);
+    }
+
+    const mostCommentedMovies = movies.slice().filter((it) => it.comments.length > 0);
+    if (mostCommentedMovies.length > 0) {
+      mostCommentedMovies.sort((a, b) => b.comments.length - a.comments.length);
+      const mostCommentedFilmsContainer = this._mostCommentedFilmsExtraComponent.getFilmsContainer();
+      for (const movie of mostCommentedMovies.slice(0, EXTRA_CARDS_COUNT)) {
+        this._renderMovie(movie, mostCommentedFilmsContainer);
+      }
+    } else {
+      remove(this._mostCommentedFilmsExtraComponent);
+    }
+  }
+
+  _clearBoard({ resetRenderedMovieCount = false, resetSortType = false } = {}) {
+    const movieCount = this._getMovies().length;
+
+    this._moviePresenter.forEach((presenters) => presenters.forEach((presenter) => presenter.destroy()));
+    this._moviePresenter.clear();
+
+    remove(this._siteMenuComponent);
+    remove(this._sortComponent);
+    remove(this._noFilmComponent);
+    remove(this._showMoreButtonComponent);
+    remove(this._boardComponent);
+
+    if (resetRenderedMovieCount) {
+      this._renderedMovieCount = CARDS_COUNT_PER_STEP;
+    } else {
+      if (this._renderedMovieCount < CARDS_COUNT_PER_STEP) {
+        this._renderedMovieCount = Math.max(movieCount, this._renderedMovieCount);
+      } else {
+        this._renderedMovieCount = Math.min(movieCount, this._renderedMovieCount);
+      }
+    }
+
+    if (resetSortType) {
+      this._currentSortType = SortType.DEFAULT;
+    }
+  }
+
+  _renderBoard() {
+    render(this._mainContainer, this._boardComponent, RenderPosition.BEFOREEND);
+    if (this._isLoading) {
+      this._renderLoading();
+      return;
+    }
+
+    const totalMoviesCount = this._moviesModel.getMovies().length;
+    if (totalMoviesCount === 0) {
+      this._renderNoFilms();
+    } else {
+      const movies = this._getMovies();
+      const movieCount = movies.length;
+      if (movieCount > 0) {
+        this._renderSort();
+        render(this._boardComponent, this._filmsContainerComponent, RenderPosition.BEFOREEND);
+        this._renderMovies(movies.slice(0, Math.min(movieCount, this._renderedMovieCount)));
+        if (movieCount > this._renderedMovieCount) {
+          this._renderShowMoreButton();
+        }
+      } else {
+        this._renderNoFilms();
+      }
+
+      this._renderExtraFilms();
+    }
+  }
+
+  _handleShowMoreButtonClick() {
+    const movieCount = this._getMovies().length;
+    const newRenderedMovieCount = Math.min(movieCount, this._renderedMovieCount + CARDS_COUNT_PER_STEP);
+    const movies = this._getMovies().slice(this._renderedMovieCount, newRenderedMovieCount);
+    this._renderMovies(movies);
+    this._renderedMovieCount = newRenderedMovieCount;
+
+    if (this._renderedMovieCount >= movieCount) {
+      remove(this._showMoreButtonComponent);
+    }
+  }
+
+  _handleSortTypeChange(sortType) {
+    // сортируем фильмы только если новая сортировка отличается от текущей
+    if (this._currentSortType === sortType) {
+      return;
+    }
+
+    this._currentSortType = sortType;
+    this._clearBoard({ resetRenderedMovieCount: true });
+    this._renderBoard();
+  }
+
+  _onEscKeyDown(evt) {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      this._closePopup();
+    }
+  }
+
   _handleViewAction(actionType, updateType, update) {
     switch (actionType) {
       case UserAction.UPDATE_MOVIE:
@@ -144,193 +340,6 @@ export default class MovieList {
 
     if (this._openedPopup) {
       this._openPopup(data)();
-    }
-  }
-
-  _closePopup() {
-    remove(this._openedPopup);
-    document.body.classList.remove('hide-overflow');
-    document.removeEventListener('keydown', this._onEscKeyDown);
-    this._openedPopup = null;
-  }
-
-  _onEscKeyDown(evt) {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
-      evt.preventDefault();
-      this._closePopup();
-    }
-  }
-
-  _openPopup(movie) {
-    return () => this._api.getComments(movie.id)
-      .then((movieComments) => {
-        let scrollTop = 0;
-        if (this._openedPopup) {
-          scrollTop = this._openedPopup.getScrollTop();
-          this._closePopup();
-        }
-
-        const popupMovie = Object.assign({}, movie, { movieComments });
-        const popup = new PopupView(popupMovie, this._handleViewAction);
-        document.body.appendChild(popup.getElement());
-        document.body.classList.add('hide-overflow');
-        popup.setCloseClickHandler(this._closePopup);
-        this._openedPopup = popup;
-        this._openedPopup.scrollByTop(scrollTop);
-        document.addEventListener('keydown', this._onEscKeyDown);
-      });
-  }
-
-  _handleSortTypeChange(sortType) {
-    // сортируем фильмы только если новая сортировка отличается от текущей
-    if (this._currentSortType === sortType) {
-      return;
-    }
-
-    this._currentSortType = sortType;
-    this._clearBoard({ resetRenderedMovieCount: true });
-    this._renderBoard();
-  }
-
-  _renderSort() {
-    if (this._sortComponent !== null) {
-      this._sortComponent = null;
-    }
-
-    this._sortComponent = new SortView(this._currentSortType);
-    this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange); // передаём коллбек смены сортировки во вьюху сортировки
-
-    render(this._boardComponent, this._sortComponent, RenderPosition.BEFORE);
-  }
-
-  _renderMovie(movie, container) {
-    const moviePresenter = new MoviePresenter(container || this._filmsContainerComponent, this._openPopup, this._handleViewAction);
-    moviePresenter.init(movie);
-    let presenters = this._moviePresenter.get(movie.id);
-    if (presenters === undefined) {
-      presenters = [moviePresenter];
-      this._moviePresenter.set(movie.id, presenters);
-    } else {
-      presenters.push(moviePresenter);
-    }
-  }
-
-  _renderMovies(movies) {
-    // Метод для рендеринга N-задач за раз
-    movies.forEach((movie) => this._renderMovie(movie));
-  }
-
-  _renderNoFilms() {
-    if (this._noFilmComponent !== null) {
-      this._noFilmComponent = null;
-    }
-
-    this._noFilmComponent = new NoFilmView();
-
-    render(this._mainContainer, this._noFilmComponent, RenderPosition.BEFOREEND);
-  }
-
-  _renderLoading() {
-    render(this._mainContainer, this._loadingComponent, RenderPosition.BEFOREEND);
-  }
-
-  _handleShowMoreButtonClick() {
-    const movieCount = this._getMovies().length;
-    const newRenderedMovieCount = Math.min(movieCount, this._renderedMovieCount + CARDS_COUNT_PER_STEP);
-    const movies = this._getMovies().slice(this._renderedMovieCount, newRenderedMovieCount);
-    this._renderMovies(movies);
-    this._renderedMovieCount = newRenderedMovieCount;
-
-    if (this._renderedMovieCount >= movieCount) {
-      remove(this._showMoreButtonComponent);
-    }
-  }
-
-  _renderShowMoreButton() {
-    if (this._showMoreButtonComponent !== null) {
-      this._showMoreButtonComponent = null;
-    }
-
-    this._showMoreButtonComponent = new ShowMoreButtonView();
-    this._showMoreButtonComponent.setClickHandler(this._handleShowMoreButtonClick);
-    render(this._boardComponent.getFilmsContainer(), this._showMoreButtonComponent, RenderPosition.BEFOREEND);
-  }
-
-  _renderExtraFilms() {
-    const movies = this._moviesModel.getMovies();
-    if (movies.length === 0) {
-      return;
-    }
-    render(this._boardComponent, this._topRatedFilmsExtraComponent, RenderPosition.BEFOREEND);
-    render(this._boardComponent, this._mostCommentedFilmsExtraComponent, RenderPosition.BEFOREEND);
-
-    const topRatedMovies = movies.slice().filter((it) => it.totalRaiting > 0);
-    if (topRatedMovies.length > 0) {
-      topRatedMovies.sort((a, b) => b.totalRaiting - a.totalRaiting);
-      for (const movie of topRatedMovies.slice(0, EXTRA_CARDS_COUNT)) {
-        this._renderMovie(movie, this._topRatedFilmsExtraComponent.getFilmsContainer());
-      }
-    } else {
-      remove(this._topRatedFilmsExtraComponent);
-    }
-
-    const mostCommentedMovies = movies.slice().filter((it) => it.comments.length > 0);
-    if (mostCommentedMovies.length > 0) {
-      mostCommentedMovies.sort((a, b) => b.comments.length - a.comments.length);
-      for (const movie of mostCommentedMovies.slice(0, EXTRA_CARDS_COUNT)) {
-        this._renderMovie(movie, this._mostCommentedFilmsExtraComponent.getFilmsContainer());
-      }
-    } else {
-      remove(this._mostCommentedFilmsExtraComponent);
-    }
-  }
-
-  _clearBoard({ resetRenderedMovieCount = false, resetSortType = false } = {}) {
-    const movieCount = this._getMovies().length;
-
-    this._moviePresenter.forEach((presenters) => presenters.forEach((presenter) => presenter.destroy()));
-    this._moviePresenter.clear();
-
-    remove(this._siteMenuComponent);
-    remove(this._sortComponent);
-    remove(this._noFilmComponent);
-    remove(this._showMoreButtonComponent);
-
-    if (resetRenderedMovieCount) {
-      this._renderedMovieCount = CARDS_COUNT_PER_STEP;
-    } else {
-      this._renderedMovieCount = Math.min(movieCount, this._renderedMovieCount);
-    }
-
-    if (resetSortType) {
-      this._currentSortType = SortType.DEFAULT;
-    }
-  }
-
-  _renderBoard() {
-    if (this._isLoading) {
-      this._renderLoading();
-      return;
-    }
-
-    const totalMoviesCount = this._moviesModel.getMovies().length;
-    if (totalMoviesCount === 0) {
-      this._renderNoFilms();
-    } else {
-      const movies = this._getMovies();
-      const movieCount = movies.length;
-      if (movieCount > 0) {
-        render(this._mainContainer, this._boardComponent, RenderPosition.BEFOREEND);
-        render(this._boardComponent.getFilmsContainer(), this._filmsContainerComponent, RenderPosition.BEFOREEND);
-        this._renderSort();
-        this._renderMovies(movies.slice(0, Math.min(movieCount, this._renderedMovieCount)));
-
-        if (movieCount > this._renderedMovieCount) {
-          this._renderShowMoreButton();
-        }
-      }
-
-      this._renderExtraFilms();
     }
   }
 }

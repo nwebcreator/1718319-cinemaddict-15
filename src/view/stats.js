@@ -3,7 +3,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import SmartView from './smart.js';
 import { getProfileRating } from '../utils/rating.js';
 import { getHoursAndMinutes } from '../utils/common.js';
-import { makeItemsUnique, countMoviesByGenre, getTopGenre, filterMoviesByPeriod } from '../utils/stats.js';
+import { makeItemsUnique, getCountMoviesByGenre, getTopGenre, filterMoviesByPeriod } from '../utils/stats.js';
 import { FilterType, StatsPeriod } from '../const.js';
 import { filter } from '../utils/filter.js';
 
@@ -12,7 +12,7 @@ const renderChart = (chartCtx, movies) => {
 
   const movieGenres = movies.reduce((accumulator, currentValue) => [...accumulator, ...currentValue.genre], []);
   const uniqueGenres = makeItemsUnique(movieGenres);
-  const moviesByGenreCounts = uniqueGenres.map((genre) => countMoviesByGenre(movies, genre));
+  const moviesByGenreCounts = uniqueGenres.map((genre) => getCountMoviesByGenre(movies, genre));
 
   chartCtx.height = BAR_HEIGHT * uniqueGenres.length;
 
@@ -89,11 +89,6 @@ export default class Stats extends SmartView {
     this.restoreHandlers();
   }
 
-  getTotalDurationMarkup(duration) {
-    const { hours, minutes } = getHoursAndMinutes(duration);
-    return `${hours} <span class="statistic__item-description">h</span> ${minutes} <span class="statistic__item-description">m</span>`;
-  }
-
   getTemplate() {
     return `<section class="statistic">
     <p class="statistic__rank">
@@ -128,7 +123,7 @@ export default class Stats extends SmartView {
       </li>
       <li class="statistic__text-item">
         <h4 class="statistic__item-title">Total duration</h4>
-        <p class="statistic__item-text">${this.getTotalDurationMarkup(this._data.totalDuration)}</p>
+        <p class="statistic__item-text">${this._getTotalDurationMarkup(this._data.totalDuration)}</p>
       </li>
       <li class="statistic__text-item">
         <h4 class="statistic__item-title">Top genre</h4>
@@ -146,6 +141,34 @@ export default class Stats extends SmartView {
   restoreHandlers() {
     this._setCharts();
     this._setPeriodChangeHandler();
+  }
+
+  _getTotalDurationMarkup(duration) {
+    const { hours, minutes } = getHoursAndMinutes(duration);
+    return `${hours} <span class="statistic__item-description">h</span> ${minutes} <span class="statistic__item-description">m</span>`;
+  }
+
+  _setCharts() {
+    if (this._chart !== null) {
+      this._chart = null;
+    }
+
+    const { filteredByPeriodMovies } = this._data;
+    const chartCtx = this.getElement().querySelector('.statistic__chart');
+
+    this._chart = renderChart(chartCtx, filteredByPeriodMovies);
+  }
+
+  _parseModelToData() {
+    const watchedMovies = filter[FilterType.HISTORY](this._moviesModel.getMovies().slice());
+    const filteredByPeriodMovies = filterMoviesByPeriod(watchedMovies, this._selectedPeriod);
+    return {
+      filteredByPeriodMovies,
+      rating: getProfileRating(watchedMovies.length),
+      totalDuration: filteredByPeriodMovies.map((movie) => movie.runtime).reduce((accumulator, currentValue) => accumulator + currentValue, 0),
+      totalWatchedMoviesCount: filteredByPeriodMovies.length,
+      topGenre: getTopGenre(filteredByPeriodMovies),
+    };
   }
 
   _periodChangeHandler(evt) {
@@ -170,28 +193,5 @@ export default class Stats extends SmartView {
 
   _setPeriodChangeHandler(){
     this.getElement().querySelector('.statistic__filters').addEventListener('click', this._periodChangeHandler);
-  }
-
-  _setCharts() {
-    if (this._chart !== null) {
-      this._chart = null;
-    }
-
-    const { filteredByPeriodMovies } = this._data;
-    const chartCtx = this.getElement().querySelector('.statistic__chart');
-
-    this._chart = renderChart(chartCtx, filteredByPeriodMovies);
-  }
-
-  _parseModelToData() {
-    const watchedMovies = filter[FilterType.HISTORY](this._moviesModel.getMovies().slice());
-    const filteredByPeriodMovies = filterMoviesByPeriod(watchedMovies, this._selectedPeriod);
-    return {
-      filteredByPeriodMovies,
-      rating: getProfileRating(watchedMovies.length),
-      totalDuration: filteredByPeriodMovies.map((movie) => movie.runtime).reduce((accumulator, currentValue) => accumulator + currentValue, 0),
-      totalWatchedMoviesCount: filteredByPeriodMovies.length,
-      topGenre: getTopGenre(filteredByPeriodMovies),
-    };
   }
 }

@@ -5,7 +5,7 @@ dayjs.extend(isBetween);
 
 const makeItemsUnique = (items) => [...new Set(items)];
 
-const countMoviesByGenre = (movies, genre) => movies.filter((movie) => movie.genre.indexOf(genre) !== -1).length;
+const getCountMoviesByGenre = (movies, genre) => movies.filter((movie) => movie.genre.indexOf(genre) !== -1).length;
 
 const getTopGenre = (movies) =>{
   const allGenres = {
@@ -45,4 +45,4 @@ const filterMoviesByPeriod = (movies, period) =>{
   }
 };
 
-export { makeItemsUnique, countMoviesByGenre, getTopGenre, filterMoviesByPeriod };
+export { makeItemsUnique, getCountMoviesByGenre, getTopGenre, filterMoviesByPeriod };
